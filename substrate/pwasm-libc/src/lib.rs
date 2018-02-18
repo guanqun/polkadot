@@ -13,7 +13,7 @@ extern "C" {
 	fn ext_free(ptr: *mut u8);
 }
 
-// Declaring these function here prevents Emscripten from including it's own verisons
+// Declaring these function here prevents Emscripten from including it's own versions
 // into final binary.
 
 /// memcpy extern

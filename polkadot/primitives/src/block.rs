@@ -129,6 +129,7 @@ impl Header {
 	}
 }
 
+// understands the idea of Slicable? TODO:
 impl Slicable for Header {
 	fn decode<I: Input>(input: &mut I) -> Option<Self> {
 		Some(Header {
@@ -185,3 +186,5 @@ mod tests {
 		assert_eq!(Header::decode(&mut &v[..]).unwrap(), header);
 	}
 }
+
+// TODO: add tests for decode.

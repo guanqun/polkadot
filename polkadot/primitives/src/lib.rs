@@ -66,7 +66,7 @@ pub type AccountId = primitives::AuthorityId;
 /// exactly equivalent to what the substrate calls an "authority".
 pub type SessionKey = primitives::AuthorityId;
 
-/// Indentifier for a chain.
+/// Identifier for a chain.
 pub type ChainID = u64;
 
 /// Index of a transaction in the relay chain.

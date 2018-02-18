@@ -35,7 +35,7 @@ const APPROVALS_REQUIRED: &[u8] = b"gov:apr";
 const CURRENT_PROPOSAL: &[u8] = b"gov:pro";
 const APPROVAL_OF: &[u8] = b"gov:app:";
 
-/// The proportion of validators required for a propsal to be approved measured as the number out
+/// The proportion of validators required for a proposal to be approved measured as the number out
 /// of 1000.
 pub fn approval_ppm_required() -> u32 {
 	storage::get_or(APPROVALS_REQUIRED, 1000)

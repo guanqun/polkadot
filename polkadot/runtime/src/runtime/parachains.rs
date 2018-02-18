@@ -111,13 +111,13 @@ mod tests {
 			with_env(|e| e.parent_hash = [1u8; 32].into());
 			let duty_roster_1 = calculate_duty_roster();
 			check_roster(&duty_roster_1);
-			assert!(duty_roster_0 != duty_roster_1);
+			assert_ne!(duty_roster_0, duty_roster_1);
 
 			with_env(|e| e.parent_hash = [2u8; 32].into());
 			let duty_roster_2 = calculate_duty_roster();
 			check_roster(&duty_roster_2);
-			assert!(duty_roster_0 != duty_roster_2);
-			assert!(duty_roster_1 != duty_roster_2);
+			assert_ne!(duty_roster_0, duty_roster_2);
+			assert_ne!(duty_roster_1, duty_roster_2);
 		});
 	}
 }

@@ -20,7 +20,7 @@ use std::fmt::{Display, Formatter, Error as FmtError};
 use primitives::block;
 use error::Result;
 
-/// Block indentification.
+/// Block identification.
 #[derive(Debug, Clone, Copy)]
 pub enum BlockId {
 	/// Identify by block header hash.

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Conensus module for runtime; manages the authority set ready for the native code.
+//! Consensus module for runtime; manages the authority set ready for the native code.
 
 use rstd::prelude::*;
 use runtime_support::storage::unhashed::StorageVec;
