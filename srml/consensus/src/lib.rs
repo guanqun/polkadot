@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Substrate.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Conensus module for runtime; manages the authority set ready for the native code.
+//! Consensus module for runtime; manages the authority set ready for the native code.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
