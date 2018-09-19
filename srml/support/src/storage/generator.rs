@@ -513,6 +513,33 @@ macro_rules! __storage_items_internal {
 	type Now = super::Now<T>;
 }*/
 
+#[macro_export]
+macro_rules! __generate_genesis_config {
+	(WITH_GENESIS
+		$traitinstance:ident $traittype:ident
+		$($fieldname:ident : $fieldtype:ty = $fielddefault:expr ;)*
+	) => {
+		#[derive(Serialize, Deserialize)]
+		#[cfg(any(feature = "std", test))]
+		#[serde(rename_all = "camelCase")]
+		#[serde(deny_unknown_fields)]
+		pub struct GenesisConfig<$traitinstance: $traittype> {
+			$(pub $fieldname : $fieldtype ,)*
+		}
+
+		#[cfg(any(feature = "std", test))]
+		impl<$traitinstance: $traittype> Default for GenesisConfig<$traitinstance> {
+			fn default() -> Self {
+				GenesisConfig {
+					$($fieldname : $fielddefault ,)*
+				}
+			}
+		}
+
+	};
+	(WITHOUT_GENESIS) => {}
+}
+
 /// Declares strongly-typed wrappers around codec-compatible types in storage.
 ///
 /// For now we implement a convenience trait with pre-specialised associated types, one for each
@@ -537,6 +564,7 @@ macro_rules! decl_storage {
 			__impl_store_fns!($traitinstance $($t)*);
 			__impl_store_metadata!($cratename; $($t)*);
 		}
+		__decl_genesis_config_items!($traitinstance $traittype [] $($t)*);
 	};
 	(
 		pub trait $storetype:ident for $modulename:ident<$traitinstance:ident: $traittype:ident> as $cratename:ident {
@@ -553,6 +581,118 @@ macro_rules! decl_storage {
 		impl<$traitinstance: $traittype> $modulename<$traitinstance> {
 			__impl_store_fns!($traitinstance $($t)*);
 		}
+		__decl_genesis_config_items!($traitinstance $traittype [] $($t)*);
+	}
+}
+
+#[macro_export]
+#[doc(hidden)]
+macro_rules! __decl_genesis_config_items {
+	// simple values
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* $name:ident : default $ty:ty;  $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+        };
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* pub $name:ident : default $ty:ty; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* $name:ident : required $ty:ty; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* pub $name:ident : required $ty:ty; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* $name:ident : $ty:ty; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* pub $name:ident : $ty:ty; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+
+	// without genesis config
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* $name:ident get($getfn:ident) : default $ty:ty; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* pub $name:ident get($getfn:ident) : default $ty:ty; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* $name:ident get($getfn:ident) : required $ty:ty; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* pub $name:ident get($getfn:ident) : required $ty:ty; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* pub $name:ident get($getfn:ident) : $ty:ty; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+
+	// with genesis config
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* $name:ident get($getfn:ident) : default $ty:ty : genesis = $default:expr; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* $getfn : $ty = $default ; ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* pub $name:ident get($getfn:ident) : default $ty:ty : genesis = $default:expr; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* $getfn : $ty = $default ; ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* $name:ident get($getfn:ident) : required $ty:ty : genesis = $default:expr; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* $getfn : $ty = $default ; ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* pub $name:ident get($getfn:ident) : required $ty:ty : genesis = $default:expr; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* $getfn : $ty = $default ; ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty : genesis = $default:expr; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* $getfn : $ty = $default ; ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* pub $name:ident get($getfn:ident) : $ty:ty : genesis = $default:expr; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* $getfn : $ty = $default ; ] $($res)* );
+	};
+
+	// maps
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* $name:ident : default map [$kty:ty => $ty:ty]; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* pub $name:ident : default map [$kty:ty => $ty:ty]; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* $name:ident : required map [$kty:ty => $ty:ty]; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* pub $name:ident : required map [$kty:ty => $ty:ty]; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* $name:ident : map [$kty:ty => $ty:ty]; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* pub $name:ident : map [$kty:ty => $ty:ty]; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* $name:ident get($getfn:ident) : default map [$kty:ty => $ty:ty]; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* pub $name:ident get($getfn:ident) : default map [$kty:ty => $ty:ty]; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* $name:ident get($getfn:ident) : required map [$kty:ty => $ty:ty]; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* pub $name:ident get($getfn:ident) : required map [$kty:ty => $ty:ty]; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* $name:ident get($getfn:ident) : map [$kty:ty => $ty:ty]; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+	($traitinstance:ident $traittype:ident [$($t:tt)*] $(#[$doc:meta])* pub $name:ident get($getfn:ident) : map [$kty:ty => $ty:ty]; $($res:tt)*) => {
+		__decl_genesis_config_items!($traitinstance $traittype [ $($t)* ] $($res)* );
+	};
+
+	// exit
+	($traitinstance:ident $traittype:ident []) => {
+		__generate_genesis_config!(WITHOUT_GENESIS);
+	};
+	($traitinstance:ident $traittype:ident [ $($t:tt)* ]) => {
+		__generate_genesis_config!(WITH_GENESIS $traitinstance $traittype $($t)* );
 	}
 }
 
@@ -585,27 +725,27 @@ macro_rules! __decl_storage_items {
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
 
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty; $($t:tt)*) => {
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__decl_storage_item!(() ($traittype as $traitinstance) ($getfn) (OPTION_TYPE Option<$ty>) (get) (take) $cratename $name: $ty);
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : $ty:ty; $($t:tt)*) => {
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__decl_storage_item!((pub) ($traittype as $traitinstance) ($getfn) (OPTION_TYPE Option<$ty>) (get) (take) $cratename $name: $ty);
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : default $ty:ty; $($t:tt)*) => {
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : default $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__decl_storage_item!(() ($traittype as $traitinstance) ($getfn) (RAW_TYPE $ty) (get_or_default) (take_or_default) $cratename $name: $ty);
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : default $ty:ty; $($t:tt)*) => {
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : default $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__decl_storage_item!((pub) ($traittype as $traitinstance) ($getfn) (RAW_TYPE $ty) (get_or_default) (take_or_default) $cratename $name: $ty);
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : required $ty:ty; $($t:tt)*) => {
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : required $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__decl_storage_item!(() ($traittype as $traitinstance) ($getfn) (RAW_TYPE $ty) (require) (take_or_panic) $cratename $name: $ty);
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : required $ty:ty; $($t:tt)*) => {
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : required $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__decl_storage_item!((pub) ($traittype as $traitinstance) ($getfn) (RAW_TYPE $ty) (require) (take_or_panic) $cratename $name: $ty);
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
@@ -788,22 +928,22 @@ macro_rules! __decl_store_items {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
 	};
 
-	($(#[$doc:meta])* $name:ident get($getfn:ident) : default $ty:ty; $($t:tt)*) => {
+	($(#[$doc:meta])* $name:ident get($getfn:ident) : default $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
 	};
-	($(#[$doc:meta])* pub $name:ident get($getfn:ident) : default $ty:ty; $($t:tt)*) => {
+	($(#[$doc:meta])* pub $name:ident get($getfn:ident) : default $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
 	};
-	($(#[$doc:meta])* $name:ident get($getfn:ident) : required $ty:ty; $($t:tt)*) => {
+	($(#[$doc:meta])* $name:ident get($getfn:ident) : required $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
 	};
-	($(#[$doc:meta])* pub $name:ident get($getfn:ident) : required $ty:ty; $($t:tt)*) => {
+	($(#[$doc:meta])* pub $name:ident get($getfn:ident) : required $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
 	};
-	($(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty; $($t:tt)*) => {
+	($(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
 	};
-	($(#[$doc:meta])* pub $name:ident get($getfn:ident) : $ty:ty; $($t:tt)*) => {
+	($(#[$doc:meta])* pub $name:ident get($getfn:ident) : $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
 	};
 
@@ -879,27 +1019,27 @@ macro_rules! __impl_store_fns {
 		__impl_store_fns!($traitinstance $($t)*);
 	};
 
-	($traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : default $ty:ty; $($t:tt)*) => {
+	($traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : default $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__impl_store_fn!($traitinstance $name $getfn ($ty) $ty);
 		__impl_store_fns!($traitinstance $($t)*);
 	};
-	($traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : default $ty:ty; $($t:tt)*) => {
+	($traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : default $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__impl_store_fn!($traitinstance $name $getfn ($ty) $ty);
 		__impl_store_fns!($traitinstance $($t)*);
 	};
-	($traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : required $ty:ty; $($t:tt)*) => {
+	($traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : required $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__impl_store_fn!($traitinstance $name $getfn ($ty) $ty);
 		__impl_store_fns!($traitinstance $($t)*);
 	};
-	($traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : required $ty:ty; $($t:tt)*) => {
+	($traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : required $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__impl_store_fn!($traitinstance $name $getfn ($ty) $ty);
 		__impl_store_fns!($traitinstance $($t)*);
 	};
-	($traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty; $($t:tt)*) => {
+	($traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__impl_store_fn!($traitinstance $name $getfn (Option<$ty>) $ty);
 		__impl_store_fns!($traitinstance $($t)*);
 	};
-	($traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : $ty:ty; $($t:tt)*) => {
+	($traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__impl_store_fn!($traitinstance $name $getfn (Option<$ty>) $ty);
 		__impl_store_fns!($traitinstance $($t)*);
 	};
@@ -997,27 +1137,27 @@ macro_rules! __impl_store_items {
 		__impl_store_items!($traitinstance $($t)*);
 	};
 
-	($traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : default $ty:ty; $($t:tt)*) => {
+	($traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : default $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__impl_store_item!($name $traitinstance);
 		__impl_store_items!($traitinstance $($t)*);
 	};
-	($traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : default $ty:ty; $($t:tt)*) => {
+	($traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : default $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__impl_store_item!($name $traitinstance);
 		__impl_store_items!($traitinstance $($t)*);
 	};
-	($traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : required $ty:ty; $($t:tt)*) => {
+	($traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : required $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__impl_store_item!($name $traitinstance);
 		__impl_store_items!($traitinstance $($t)*);
 	};
-	($traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : required $ty:ty; $($t:tt)*) => {
+	($traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : required $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__impl_store_item!($name $traitinstance);
 		__impl_store_items!($traitinstance $($t)*);
 	};
-	($traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty; $($t:tt)*) => {
+	($traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__impl_store_item!($name $traitinstance);
 		__impl_store_items!($traitinstance $($t)*);
 	};
-	($traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : $ty:ty; $($t:tt)*) => {
+	($traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
 		__impl_store_item!($name $traitinstance);
 		__impl_store_items!($traitinstance $($t)*);
 	};
@@ -1191,7 +1331,7 @@ macro_rules! __store_functions_to_metadata {
 		$( $metadata:expr ),*;
 		$(#[doc = $doc_attr:tt])*
 		$name:ident get($getfn:ident) :
-			default $ty:ty;
+			default $ty:ty $(: genesis = $default:expr)*;
 		$($t:tt)*
 	) => {
 		__store_functions_to_metadata!(
@@ -1206,7 +1346,7 @@ macro_rules! __store_functions_to_metadata {
 		$( $metadata:expr ),*;
 		$(#[doc = $doc_attr:tt])*
 		pub $name:ident get($getfn:ident) :
-			default $ty:ty;
+			default $ty:ty $(: genesis = $default:expr)*;
 		$($t:tt)*
 	) => {
 		__store_functions_to_metadata!(
@@ -1221,7 +1361,7 @@ macro_rules! __store_functions_to_metadata {
 		$( $metadata:expr ),*;
 		$(#[doc = $doc_attr:tt])*
 		$name:ident get($getfn:ident) :
-			required $ty:ty;
+			required $ty:ty $(: genesis = $default:expr)*;
 		$($t:tt)*
 	) => {
 		__store_functions_to_metadata!(
@@ -1236,7 +1376,7 @@ macro_rules! __store_functions_to_metadata {
 		$( $metadata:expr ),*;
 		$(#[doc = $doc_attr:tt])*
 		pub $name:ident get($getfn:ident) :
-			required $ty:ty;
+			required $ty:ty $(: genesis = $default:expr)*;
 		$($t:tt)*
 	) => {
 		__store_functions_to_metadata!(
@@ -1250,7 +1390,7 @@ macro_rules! __store_functions_to_metadata {
 	(
 		$( $metadata:expr ),*;
 		$(#[doc = $doc_attr:tt])*
-		$name:ident get($getfn:ident) : $ty:ty;
+		$name:ident get($getfn:ident) : $ty:ty $(: genesis = $default:expr)*;
 		$( $t:tt )*
 	) => {
 		__store_functions_to_metadata!(
@@ -1264,7 +1404,7 @@ macro_rules! __store_functions_to_metadata {
 	(
 		$( $metadata:expr ),*;
 		$(#[doc = $doc_attr:tt])*
-		pub $name:ident get($getfn:ident) : $ty:ty;
+		pub $name:ident get($getfn:ident) : $ty:ty $(: genesis = $default:expr)*;
 		$( $t:tt )*
 	) => {
 		__store_functions_to_metadata!(
