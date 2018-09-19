@@ -18,6 +18,8 @@
 //! Keystore (and session key management) for ed25519 based chains like Polkadot.
 // end::description[]
 
+#![warn(unused_extern_crates)]
+
 extern crate substrate_primitives;
 extern crate parity_crypto as crypto;
 extern crate subtle;

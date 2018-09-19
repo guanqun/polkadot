@@ -38,13 +38,14 @@
 // end::description[]
 
 #![warn(missing_docs)]
+#![warn(unused_extern_crates)]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(not(feature = "std"), feature(panic_handler))]
 #![cfg_attr(not(feature = "std"), feature(core_intrinsics))]
 #![cfg_attr(not(feature = "std"), feature(alloc))]
 
-extern crate parity_codec as codec;
-extern crate sr_io as runtime_io;
+#[cfg(test)] extern crate parity_codec as codec;
+#[cfg(test)] extern crate sr_io as runtime_io;
 #[cfg_attr(not(feature = "std"), macro_use)]
 extern crate sr_std as rstd;
 extern crate substrate_primitives as primitives;

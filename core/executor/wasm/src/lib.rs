@@ -2,6 +2,8 @@
 #![feature(panic_handler)]
 #![cfg_attr(feature = "strict", deny(warnings))]
 
+#![warn(unused_extern_crates)]
+
 #![feature(alloc)]
 extern crate alloc;
 use alloc::vec::Vec;

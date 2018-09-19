@@ -19,6 +19,7 @@
 // end::description[]
 
 #![warn(missing_docs)]
+#![warn(unused_extern_crates)]
 
 #[cfg_attr(test, macro_use)]
 extern crate hex_literal;
@@ -31,7 +32,7 @@ extern crate memorydb;
 extern crate triehash;
 extern crate patricia_trie;
 
-extern crate byteorder;
+#[cfg(test)] extern crate byteorder;
 extern crate parking_lot;
 extern crate rlp;
 extern crate heapsize;

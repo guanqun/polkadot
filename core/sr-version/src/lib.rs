@@ -16,10 +16,9 @@
 
 //! Version module for runtime; Provide a function that returns runtime version.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+#![warn(unused_extern_crates)]
 
-#[cfg(feature = "std")]
-extern crate serde;
+#![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(feature = "std")]
 #[macro_use]

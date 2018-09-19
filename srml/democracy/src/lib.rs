@@ -16,6 +16,8 @@
 
 //! Democratic system: Handles administration of general stakeholder voting.
 
+#![warn(unused_extern_crates)]
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(feature = "std")]

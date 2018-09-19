@@ -19,6 +19,8 @@
 //! or core/alloc to be used with any code that depends on the runtime.
 // end::description[]
 
+#![warn(unused_extern_crates)]
+
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(not(feature = "std"), feature(panic_handler))]
 #![cfg_attr(not(feature = "std"), feature(core_intrinsics))]

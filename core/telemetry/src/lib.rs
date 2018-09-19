@@ -23,6 +23,8 @@
 //! so that the logging thread doesn't get held up at all.
 // end::description[]
 
+#![warn(unused_extern_crates)]
+
 extern crate parking_lot;
 extern crate ws;
 extern crate slog_async;

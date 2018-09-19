@@ -28,6 +28,7 @@
 // end::description[]
 
 #![warn(missing_docs)]
+#![warn(unused_extern_crates)]
 #![recursion_limit="128"]
 
 extern crate parity_codec as codec;
@@ -37,13 +38,13 @@ extern crate substrate_serializer as serializer;
 extern crate substrate_state_machine as state_machine;
 extern crate sr_version as runtime_version;
 
-extern crate serde;
+#[cfg(test)] extern crate serde;
 extern crate wasmi;
 extern crate byteorder;
 extern crate triehash;
 extern crate parking_lot;
-extern crate twox_hash;
-extern crate hashdb;
+#[cfg(test)] extern crate twox_hash;
+#[cfg(test)] extern crate hashdb;
 
 #[macro_use] extern crate log;
 

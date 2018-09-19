@@ -16,6 +16,8 @@
 
 //! Council system: Handles the voting in and maintenance of council members.
 
+#![warn(unused_extern_crates)]
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(feature = "std")]

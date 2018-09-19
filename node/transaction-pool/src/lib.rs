@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Substrate.  If not, see <http://www.gnu.org/licenses/>.
 
+#![warn(unused_extern_crates)]
+
 extern crate substrate_client as client;
 extern crate parity_codec as codec;
 extern crate substrate_extrinsic_pool as extrinsic_pool;

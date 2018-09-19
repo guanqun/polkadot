@@ -19,6 +19,7 @@
 // end::description[]
 
 #![warn(missing_docs)]
+#![warn(unused_extern_crates)]
 
 extern crate rhododendron;
 extern crate substrate_bft as bft;

@@ -18,6 +18,8 @@
 //! Support code for the runtime.
 // end::description[]
 
+#![warn(unused_extern_crates)]
+
 #[macro_use] extern crate hex_literal;
 #[macro_use] extern crate lazy_static;
 extern crate substrate_primitives;

@@ -31,6 +31,8 @@
 //! This module should be hooked up to the finalization routine.
 //!
 
+#![warn(unused_extern_crates)]
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg_attr(any(feature = "std", test), macro_use)]

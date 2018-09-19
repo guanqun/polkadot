@@ -32,6 +32,8 @@
 //! set for this block height.
 // end::description[]
 
+#![warn(unused_extern_crates)]
+
 #![recursion_limit="128"]
 
 pub mod error;

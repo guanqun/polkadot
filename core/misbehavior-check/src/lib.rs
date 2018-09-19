@@ -18,6 +18,8 @@
 //! Utility for substrate-based runtimes that want to check misbehavior reports.
 // end::description[]
 
+#![warn(unused_extern_crates)]
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate parity_codec as codec;

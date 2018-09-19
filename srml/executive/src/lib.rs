@@ -16,6 +16,8 @@
 
 //! Executive: Handles all of the top-level stuff; essentially just executing blocks/extrinsics.
 
+#![warn(unused_extern_crates)]
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(feature = "std")]

@@ -16,6 +16,8 @@
 
 //! Balances: Handles balances.
 
+#![warn(unused_extern_crates)]
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(feature = "std")]

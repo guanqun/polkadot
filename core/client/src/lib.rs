@@ -17,13 +17,14 @@
 //! Substrate Client and associated logic.
 
 #![warn(missing_docs)]
+#![warn(unused_extern_crates)]
 #![recursion_limit="128"]
 
 extern crate substrate_bft as bft;
 extern crate parity_codec as codec;
 extern crate substrate_metadata;
 extern crate substrate_primitives as primitives;
-extern crate sr_io as runtime_io;
+#[cfg(test)] extern crate sr_io as runtime_io;
 extern crate sr_primitives as runtime_primitives;
 extern crate substrate_state_machine as state_machine;
 #[cfg(test)] extern crate substrate_keyring as keyring;

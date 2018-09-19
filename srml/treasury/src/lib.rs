@@ -16,6 +16,8 @@
 
 //! The Treasury: Keeps account of the taxed cash and handles its deployment.
 
+#![warn(unused_extern_crates)]
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg_attr(feature = "std", macro_use)]

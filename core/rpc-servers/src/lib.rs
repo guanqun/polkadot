@@ -19,6 +19,7 @@
 // end::description[]
 
 #[warn(missing_docs)]
+#![warn(unused_extern_crates)]
 
 pub extern crate substrate_rpc as apis;
 

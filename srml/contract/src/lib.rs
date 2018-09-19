@@ -50,6 +50,8 @@
 //!
 //! [`Module::execute`]: struct.Module.html#impl-OnFinalise
 
+#![warn(unused_extern_crates)]
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(feature = "std")]

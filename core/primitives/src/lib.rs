@@ -19,6 +19,7 @@
 // end::description[]
 
 #![warn(missing_docs)]
+#![warn(unused_extern_crates)]
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(not(feature = "std"), feature(alloc))]

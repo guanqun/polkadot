@@ -17,6 +17,8 @@
 //! Session manager: is told the validators and allows them to manage their session keys for the
 //! consensus module.
 
+#![warn(unused_extern_crates)]
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(feature = "std")]

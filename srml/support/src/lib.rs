@@ -18,6 +18,8 @@
 //! Support code for the runtime.
 // end::description[]
 
+#![warn(unused_extern_crates)]
+
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(not(feature = "std"), feature(alloc))]
 

@@ -16,6 +16,8 @@
 
 //! Conensus module for runtime; manages the authority set ready for the native code.
 
+#![warn(unused_extern_crates)]
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[allow(unused_imports)]

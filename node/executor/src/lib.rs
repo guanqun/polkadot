@@ -17,6 +17,8 @@
 //! A `CodeExecutor` specialisation which uses natively compiled runtime when the wasm to be
 //! executed is equivalent to the natively compiled code.
 
+#![warn(unused_extern_crates)]
+
 extern crate node_runtime;
 #[macro_use] extern crate substrate_executor;
 extern crate parity_codec as codec;

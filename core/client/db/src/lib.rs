@@ -18,6 +18,8 @@
 //! Client backend that uses RocksDB database as storage.
 // end::description[]
 
+#![warn(unused_extern_crates)]
+
 extern crate substrate_client as client;
 extern crate kvdb_rocksdb;
 extern crate kvdb;

@@ -22,6 +22,7 @@
 // end::description[]
 
 #![warn(missing_docs)]
+#![warn(unused_extern_crates)]
 
 extern crate serde;
 extern crate serde_json;

@@ -18,6 +18,8 @@
 //! This is part of the Substrate runtime.
 // end::description[]
 
+#![warn(unused_extern_crates)]
+
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(not(feature = "std"), feature(lang_items))]
 #![cfg_attr(not(feature = "std"), feature(panic_handler))]

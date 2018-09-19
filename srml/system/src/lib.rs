@@ -17,6 +17,8 @@
 //! System manager: Handles lowest level stuff like depositing logs, basic set up and take down of
 //! temporary storage entries, access to old block hashes.
 
+#![warn(unused_extern_crates)]
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate substrate_primitives;

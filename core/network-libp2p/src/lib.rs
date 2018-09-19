@@ -18,6 +18,8 @@
 //! TODO: Missing doc
 // end::description[]
 
+#![warn(unused_extern_crates)]
+
 #![recursion_limit="128"]
 #![type_length_limit = "268435456"]
 
@@ -30,7 +32,6 @@ extern crate tokio_timer;
 extern crate libc;
 extern crate libp2p;
 extern crate rand;
-extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;

@@ -18,6 +18,7 @@
 //! The Substrate runtime. This can be compiled with #[no_std], ready for Wasm.
 // end::description[]
 
+#![warn(unused_extern_crates)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate sr_std as rstd;
