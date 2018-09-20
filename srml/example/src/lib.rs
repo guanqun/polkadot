@@ -159,10 +159,10 @@ decl_storage! {
 		// If they have a getter (`get(getter_name)`), then your module will come
 		// equipped with `fn getter_name() -> Type` for basic value items or
 		// `fn getter_name(key: KeyType) -> ValueType` for map items.
-		Dummy get(dummy): T::Balance;
+		Dummy get(dummy): T::Balance : genesis = Default::default();
 
 		// this one uses the default, we'll demonstrate the usage of 'mutate' API.
-		Foo get(foo): default T::Balance;
+		Foo get(foo): default T::Balance : genesis = Default::default();
 	}
 }
 
@@ -277,28 +277,6 @@ impl<T: Trait> OnFinalise<T::BlockNumber> for Module<T> {
 		// Anything that needs to be done at the end of the block.
 		// We just kill our dummy storage item.
 		<Dummy<T>>::kill();
-	}
-}
-
-#[cfg(feature = "std")]
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-#[serde(deny_unknown_fields)]
-/// The genesis block configuration type. This is a simple default-capable struct that
-/// contains any fields with which this module can be configured at genesis time.
-pub struct GenesisConfig<T: Trait> {
-	/// A value with which to initialise the Dummy storage item.
-	pub dummy: T::Balance,
-	pub foo: T::Balance,
-}
-
-#[cfg(feature = "std")]
-impl<T: Trait> Default for GenesisConfig<T> {
-	fn default() -> Self {
-		GenesisConfig {
-			dummy: Default::default(),
-			foo: Default::default(),
-		}
 	}
 }
 
