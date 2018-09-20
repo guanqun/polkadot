@@ -107,16 +107,16 @@ decl_storage! {
 
 		/// Proportion of funds that should be bonded in order to place a proposal. An accepted
 		/// proposal gets these back. A rejected proposal doesn't.
-		ProposalBond get(proposal_bond): required Permill;
+		ProposalBond get(proposal_bond): required Permill : genesis = Default::default();
 
 		/// Minimum amount of funds that should be placed in a deposit for making a proposal.
-		ProposalBondMinimum get(proposal_bond_minimum): required T::Balance;
+		ProposalBondMinimum get(proposal_bond_minimum): required T::Balance : genesis = Default::default();
 
 		/// Period between successive spends.
-		SpendPeriod get(spend_period): required T::BlockNumber;
+		SpendPeriod get(spend_period): required T::BlockNumber : genesis = runtime_primitives::traits::One::one();
 
 		/// Percentage of spare funds (if any) that are burnt per spend period.
-		Burn get(burn): required Permill;
+		Burn get(burn): required Permill : genesis = Default::default();
 
 		// State...
 
@@ -283,31 +283,6 @@ impl<T: Trait> OnFinalise<T::BlockNumber> for Module<T> {
 		// Check to see if we should spend some funds!
 		if (n % Self::spend_period()).is_zero() {
 			Self::spend_funds();
-		}
-	}
-}
-
-#[cfg(feature = "std")]
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-#[serde(deny_unknown_fields)]
-/// The genesis block configuration type. This is a simple default-capable struct that
-/// contains any fields with which this module can be configured at genesis time.
-pub struct GenesisConfig<T: Trait> {
-	pub proposal_bond: Permill,
-	pub proposal_bond_minimum: T::Balance,
-	pub spend_period: T::BlockNumber,
-	pub burn: Permill,
-}
-
-#[cfg(feature = "std")]
-impl<T: Trait> Default for GenesisConfig<T> {
-	fn default() -> Self {
-		GenesisConfig {
-			proposal_bond: Default::default(),
-			proposal_bond_minimum: Default::default(),
-			spend_period: runtime_primitives::traits::One::one(),
-			burn: Default::default(),
 		}
 	}
 }
