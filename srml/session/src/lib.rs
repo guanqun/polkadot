@@ -86,9 +86,9 @@ decl_storage! {
 	trait Store for Module<T: Trait> as Session {
 
 		/// The current set of validators.
-		pub Validators get(validators): required Vec<T::AccountId>;
+		pub Validators get(validators): required Vec<T::AccountId> : genesis = vec![];
 		/// Current length of the session.
-		pub SessionLength get(length): required T::BlockNumber;
+		pub SessionLength get(session_length): required T::BlockNumber : genesis = T::BlockNumber::sa(1000);
 		/// Current index of the session.
 		pub CurrentIndex get(current_index): required T::BlockNumber;
 		/// Timestamp when current session started.
@@ -167,7 +167,7 @@ impl<T: Trait> Module<T> {
 		// do this last, after the staking system has had chance to switch out the authorities for the
 		// new set.
 		// check block number and call next_session if necessary.
-		let is_final_block = ((block_number - Self::last_length_change()) % Self::length()).is_zero();
+		let is_final_block = ((block_number - Self::last_length_change()) % Self::session_length()).is_zero();
 		let (should_end_session, apply_rewards) = <ForcingNewSession<T>>::take()
 			.map_or((is_final_block, is_final_block), |apply_rewards| (true, apply_rewards));
 		if should_end_session {
@@ -212,7 +212,7 @@ impl<T: Trait> Module<T> {
 	/// Get the time that should have elapsed over a session if everything was working perfectly.
 	pub fn ideal_session_duration() -> T::Moment {
 		let block_period = <timestamp::Module<T>>::block_period();
-		let session_length = <T::Moment as As<T::BlockNumber>>::sa(Self::length());
+		let session_length = <T::Moment as As<T::BlockNumber>>::sa(Self::session_length());
 		session_length * block_period
 	}
 
@@ -220,7 +220,7 @@ impl<T: Trait> Module<T> {
 	/// due to rotate at the end of this block, then it will return 0. If the just began, then
 	/// it will return `Self::length() - 1`.
 	pub fn blocks_remaining() -> T::BlockNumber {
-		let length = Self::length();
+		let length = Self::session_length();
 		let length_minus_1 = length - One::one();
 		let block_number = <system::Module<T>>::block_number();
 		length_minus_1 - (block_number - Self::last_length_change() + length_minus_1) % length
@@ -230,26 +230,6 @@ impl<T: Trait> Module<T> {
 impl<T: Trait> OnFinalise<T::BlockNumber> for Module<T> {
 	fn on_finalise(n: T::BlockNumber) {
 		Self::check_rotate_session(n);
-	}
-}
-
-#[cfg(any(feature = "std", test))]
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-#[serde(deny_unknown_fields)]
-pub struct GenesisConfig<T: Trait> {
-	pub session_length: T::BlockNumber,
-	pub validators: Vec<T::AccountId>,
-}
-
-#[cfg(any(feature = "std", test))]
-impl<T: Trait> Default for GenesisConfig<T> {
-	fn default() -> Self {
-		use primitives::traits::As;
-		GenesisConfig {
-			session_length: T::BlockNumber::sa(1000),
-			validators: vec![],
-		}
 	}
 }
 
@@ -335,7 +315,7 @@ mod tests {
 	fn simple_setup_should_work() {
 		with_externalities(&mut new_test_ext(), || {
 			assert_eq!(Consensus::authorities(), vec![1, 2, 3]);
-			assert_eq!(Session::length(), 2);
+			assert_eq!(Session::session_length(), 2);
 			assert_eq!(Session::validators(), vec![1, 2, 3]);
 		});
 	}
@@ -351,7 +331,7 @@ mod tests {
 			System::set_block_number(2);
 			assert_eq!(Session::blocks_remaining(), 0);
 			Session::check_rotate_session(2);
-			assert_eq!(Session::length(), 10);
+			assert_eq!(Session::session_length(), 10);
 
 			System::set_block_number(7);
 			assert_eq!(Session::current_index(), 1);
@@ -381,45 +361,45 @@ mod tests {
 			System::set_block_number(1);
 			assert_ok!(Session::set_length(3));
 			Session::check_rotate_session(1);
-			assert_eq!(Session::length(), 2);
+			assert_eq!(Session::session_length(), 2);
 			assert_eq!(Session::current_index(), 0);
 
 			// Block 2: Length now changed to 3. Index incremented.
 			System::set_block_number(2);
 			assert_ok!(Session::set_length(3));
 			Session::check_rotate_session(2);
-			assert_eq!(Session::length(), 3);
+			assert_eq!(Session::session_length(), 3);
 			assert_eq!(Session::current_index(), 1);
 
 			// Block 3: Length now changed to 3. Index incremented.
 			System::set_block_number(3);
 			Session::check_rotate_session(3);
-			assert_eq!(Session::length(), 3);
+			assert_eq!(Session::session_length(), 3);
 			assert_eq!(Session::current_index(), 1);
 
 			// Block 4: Change to length 2; no visible change.
 			System::set_block_number(4);
 			assert_ok!(Session::set_length(2));
 			Session::check_rotate_session(4);
-			assert_eq!(Session::length(), 3);
+			assert_eq!(Session::session_length(), 3);
 			assert_eq!(Session::current_index(), 1);
 
 			// Block 5: Length now changed to 2. Index incremented.
 			System::set_block_number(5);
 			Session::check_rotate_session(5);
-			assert_eq!(Session::length(), 2);
+			assert_eq!(Session::session_length(), 2);
 			assert_eq!(Session::current_index(), 2);
 
 			// Block 6: No change.
 			System::set_block_number(6);
 			Session::check_rotate_session(6);
-			assert_eq!(Session::length(), 2);
+			assert_eq!(Session::session_length(), 2);
 			assert_eq!(Session::current_index(), 2);
 
 			// Block 7: Next index.
 			System::set_block_number(7);
 			Session::check_rotate_session(7);
-			assert_eq!(Session::length(), 2);
+			assert_eq!(Session::session_length(), 2);
 			assert_eq!(Session::current_index(), 3);
 		});
 	}

@@ -206,7 +206,7 @@ impl<T: Trait> Module<T> {
 
 	/// The length of a staking era in blocks.
 	pub fn era_length() -> T::BlockNumber {
-		Self::sessions_per_era() * <session::Module<T>>::length()
+		Self::sessions_per_era() * <session::Module<T>>::session_length()
 	}
 
 	/// Balance of a (potential) validator that includes all nominators.
