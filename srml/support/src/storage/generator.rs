@@ -515,19 +515,19 @@ macro_rules! __storage_items_internal {
 
 #[macro_export]
 macro_rules! __generate_genesis_config {
-	(WITH_GENESIS
+	(
 		$traitinstance:ident $traittype:ident
 		$($fieldname:ident : $fieldtype:ty = $fielddefault:expr ;)*
 	) => {
 		#[derive(Serialize, Deserialize)]
-		#[cfg(any(feature = "std", test))]
+		#[cfg(feature = "std")]
 		#[serde(rename_all = "camelCase")]
 		#[serde(deny_unknown_fields)]
 		pub struct GenesisConfig<$traitinstance: $traittype> {
 			$(pub $fieldname : $fieldtype ,)*
 		}
 
-		#[cfg(any(feature = "std", test))]
+		#[cfg(feature = "std")]
 		impl<$traitinstance: $traittype> Default for GenesisConfig<$traitinstance> {
 			fn default() -> Self {
 				GenesisConfig {
@@ -537,7 +537,6 @@ macro_rules! __generate_genesis_config {
 		}
 
 	};
-	(WITHOUT_GENESIS) => {}
 }
 
 /// Declares strongly-typed wrappers around codec-compatible types in storage.
@@ -688,11 +687,9 @@ macro_rules! __decl_genesis_config_items {
 	};
 
 	// exit
-	($traitinstance:ident $traittype:ident []) => {
-		__generate_genesis_config!(WITHOUT_GENESIS);
-	};
+	($traitinstance:ident $traittype:ident []) => {};
 	($traitinstance:ident $traittype:ident [ $($t:tt)* ]) => {
-		__generate_genesis_config!(WITH_GENESIS $traitinstance $traittype $($t)* );
+		__generate_genesis_config!($traitinstance $traittype $($t)* );
 	}
 }
 
