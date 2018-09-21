@@ -842,62 +842,97 @@ macro_rules! __decl_storage_item {
 #[macro_export]
 #[doc(hidden)]
 macro_rules! __decl_store_items {
-
-
-
-
-
-	// simple values
-	($(#[$doc:meta])* $name:ident : default $ty:ty; $($t:tt)*) => {
-		__decl_store_item!($name); __decl_store_items!($($t)*);
-	};
-	($(#[$doc:meta])* pub $name:ident : default $ty:ty; $($t:tt)*) => {
-		__decl_store_item!($name); __decl_store_items!($($t)*);
-	};
+	// simple values without getters:
+	//  - pub
+	//  - $default
+	// so there are 4 cases here.
 	($(#[$doc:meta])* $name:ident : $ty:ty; $($t:tt)*) => {
+		__decl_store_item!($name); __decl_store_items!($($t)*);
+	};
+	($(#[$doc:meta])* $name:ident : $ty:ty = $default:expr; $($t:tt)*) => {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
 	};
 	($(#[$doc:meta])* pub $name:ident : $ty:ty; $($t:tt)*) => {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
 	};
-
-	($(#[$doc:meta])* $name:ident get($getfn:ident) : default $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
-		__decl_store_item!($name); __decl_store_items!($($t)*);
-	};
-	($(#[$doc:meta])* pub $name:ident get($getfn:ident) : default $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
-		__decl_store_item!($name); __decl_store_items!($($t)*);
-	};
-	($(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
-		__decl_store_item!($name); __decl_store_items!($($t)*);
-	};
-	($(#[$doc:meta])* pub $name:ident get($getfn:ident) : $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
+	($(#[$doc:meta])* pub $name:ident : $ty:ty = $default:expr; $($t:tt)*) => {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
 	};
 
-	// maps
-	($(#[$doc:meta])* $name:ident : default map [$kty:ty => $ty:ty]; $($t:tt)*) => {
+	// simple values with getters:
+	//  - pub
+	//  - no_config
+	//  - $default
+	// so there are 8 cases here.
+	($(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty; $($t:tt)*) => {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
 	};
-	($(#[$doc:meta])* pub $name:ident : default map [$kty:ty => $ty:ty]; $($t:tt)*) => {
+	($(#[$doc:meta])* $name:ident no_config get($getfn:ident) : $ty:ty; $($t:tt)*) => {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
 	};
-	($(#[$doc:meta])* $name:ident : map [$kty:ty => $ty:ty]; $($t:tt)*) => {
+	($(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty = $default:expr; $($t:tt)*) => {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
 	};
-	($(#[$doc:meta])* pub $name:ident : map [$kty:ty => $ty:ty]; $($t:tt)*) => {
+	($(#[$doc:meta])* $name:ident no_config get($getfn:ident) : $ty:ty = $default:expr; $($t:tt)*) => {
+		__decl_store_item!($name); __decl_store_items!($($t)*);
+	};
+	($(#[$doc:meta])* pub $name:ident get($getfn:ident) : $ty:ty; $($t:tt)*) => {
+		__decl_store_item!($name); __decl_store_items!($($t)*);
+	};
+	($(#[$doc:meta])* pub $name:ident no_config get($getfn:ident) : $ty:ty; $($t:tt)*) => {
+		__decl_store_item!($name); __decl_store_items!($($t)*);
+	};
+	($(#[$doc:meta])* pub $name:ident get($getfn:ident) : $ty:ty = $default:expr; $($t:tt)*) => {
+		__decl_store_item!($name); __decl_store_items!($($t)*);
+	};
+	($(#[$doc:meta])* pub $name:ident no_config get($getfn:ident) : $ty:ty = $default:expr; $($t:tt)*) => {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
 	};
 
-	($(#[$doc:meta])* $name:ident get($getfn:ident) : default map [$kty:ty => $ty:ty]; $($t:tt)*) => {
+	// maps:
+	//  - pub
+	//  - $default
+	// so there are 4 cases here.
+	($(#[$doc:meta])* $name:ident : Map<$kty:ty, $ty:ty>; $($t:tt)*) => {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
 	};
-	($(#[$doc:meta])* pub $name:ident get($getfn:ident) : default map [$kty:ty => $ty:ty]; $($t:tt)*) => {
+	($(#[$doc:meta])* $name:ident : Map<$kty:ty, $ty:ty> = $default:expr; $($t:tt)*) => {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
 	};
-	($(#[$doc:meta])* $name:ident get($getfn:ident) : map [$kty:ty => $ty:ty]; $($t:tt)*) => {
+	($(#[$doc:meta])* pub $name:ident : Map<$kty:ty, $ty:ty>; $($t:tt)*) => {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
 	};
-	($(#[$doc:meta])* pub $name:ident get($getfn:ident) : map [$kty:ty => $ty:ty]; $($t:tt)*) => {
+	($(#[$doc:meta])* pub $name:ident : Map<$kty:ty, $ty:ty> = $default:expr; $($t:tt)*) => {
+		__decl_store_item!($name); __decl_store_items!($($t)*);
+	};
+
+	// maps:
+	//  - pub
+	//  - no_config
+	//  - $default
+	// so there are 8 cases here.
+	($(#[$doc:meta])* $name:ident get($getfn:ident) : Map<$kty:ty, $ty:ty>; $($t:tt)*) => {
+		__decl_store_item!($name); __decl_store_items!($($t)*);
+	};
+	($(#[$doc:meta])* $name:ident no_config get($getfn:ident) : Map<$kty:ty, $ty:ty>; $($t:tt)*) => {
+		__decl_store_item!($name); __decl_store_items!($($t)*);
+	};
+	($(#[$doc:meta])* $name:ident get($getfn:ident) : Map<$kty:ty, $ty:ty> = $default:expr; $($t:tt)*) => {
+		__decl_store_item!($name); __decl_store_items!($($t)*);
+	};
+	($(#[$doc:meta])* $name:ident no_config get($getfn:ident) : Map<$kty:ty, $ty:ty> = $default:expr; $($t:tt)*) => {
+		__decl_store_item!($name); __decl_store_items!($($t)*);
+	};
+	($(#[$doc:meta])* pub $name:ident get($getfn:ident) : Map<$kty:ty, $ty:ty>; $($t:tt)*) => {
+		__decl_store_item!($name); __decl_store_items!($($t)*);
+	};
+	($(#[$doc:meta])* pub $name:ident no_config get($getfn:ident) : Map<$kty:ty, $ty:ty>; $($t:tt)*) => {
+		__decl_store_item!($name); __decl_store_items!($($t)*);
+	};
+	($(#[$doc:meta])* pub $name:ident get($getfn:ident) : Map<$kty:ty, $ty:ty> = $default:expr; $($t:tt)*) => {
+		__decl_store_item!($name); __decl_store_items!($($t)*);
+	};
+	($(#[$doc:meta])* pub $name:ident no_config get($getfn:ident) : Map<$kty:ty, $ty:ty> = $default:expr; $($t:tt)*) => {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
 	};
 
