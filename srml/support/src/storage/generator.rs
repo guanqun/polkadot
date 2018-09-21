@@ -1180,34 +1180,6 @@ macro_rules! __impl_store_metadata {
 #[macro_export]
 #[doc(hidden)]
 macro_rules! __store_functions_to_metadata {
-	(
-		$( $metadata:expr ),*;
-		$(#[doc = $doc_attr:tt])*
-		$name:ident : default $ty:ty;
-		$($t:tt)*
-	) => {
-		__store_functions_to_metadata!(
-			$( $metadata, )*
-			__store_function_to_metadata!(
-				$( $doc_attr ),*; $name, __store_type_to_metadata!($ty), default
-			);
-			$( $t )*
-		)
-	};
-	(
-		$( $metadata:expr ),*;
-		$(#[doc = $doc_attr:tt])*
-		pub $name:ident : default $ty:ty;
-		$($t:tt)*
-	) => {
-		__store_functions_to_metadata!(
-			$( $metadata, )*
-			__store_function_to_metadata!(
-				$( $doc_attr ),*; $name, __store_type_to_metadata!($ty), default
-			);
-			$( $t )*
-		)
-	};
 	// simple values
 	(
 		$( $metadata:expr ),*;
