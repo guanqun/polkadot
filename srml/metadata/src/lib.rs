@@ -255,10 +255,9 @@ pub enum StorageFunctionType {
 /// A storage function modifier.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Debug, Serialize))]
-pub enum StorageFunctionModifier {
+pub enum StorageFunctionModifier { // TODO: we probably need to remove this totally.
 	None,
 	Default,
-	Required,
 }
 
 /// All metadata about an runtime module.
