@@ -66,14 +66,6 @@ pub trait Storage {
 	/// Load the bytes of a key from storage. Can panic if the type is incorrect.
 	fn get<T: codec::Codec>(&self, key: &[u8]) -> Option<T>;
 
-	/// Load the bytes of a key from storage. Can panic if the type is incorrect. Will panic if
-	/// it's not there.
-	fn require<T: codec::Codec>(&self, key: &[u8]) -> T { self.get(key).expect("Required values must be in storage") }
-
-	/// Load the bytes of a key from storage. Can panic if the type is incorrect. The type's
-	/// default is returned if it's not there.
-	fn get_or_default<T: codec::Codec + Default>(&self, key: &[u8]) -> T { self.get(key).unwrap_or_default() }
-
 	/// Put a value in under a key.
 	fn put<T: codec::Codec>(&self, key: &[u8], val: &T);
 
@@ -86,12 +78,6 @@ pub trait Storage {
 		self.kill(key);
 		value
 	}
-
-	/// Take a value from storage, deleting it after reading.
-	fn take_or_panic<T: codec::Codec>(&self, key: &[u8]) -> T { self.take(key).expect("Required values must be in storage") }
-
-	/// Take a value from storage, deleting it after reading.
-	fn take_or_default<T: codec::Codec + Default>(&self, key: &[u8]) -> T { self.take(key).unwrap_or_default() }
 }
 
 /// A strongly-typed value kept in storage.
@@ -310,17 +296,6 @@ macro_rules! storage_items {
 		storage_items!($($t)*);
 	};
 	() => ()
-}
-
-#[macro_export]
-#[doc(hidden)]
-macro_rules! __handle_wrap_internal {
-	(RAW_TYPE { $($raw:tt)* } { $($option:tt)* }) => {
-		$($raw)*;
-	};
-	(OPTION_TYPE { $($raw:tt)* } { $($option:tt)* }) => {
-		$($option)*;
-	};
 }
 
 #[macro_export]
@@ -666,73 +641,121 @@ macro_rules! __decl_genesis_config_items {
 #[macro_export]
 #[doc(hidden)]
 macro_rules! __decl_storage_items {
-	// simple values
+	// simple values without getters:
+	//  - pub
+	//  - $default
+	// so there are 4 cases here.
 	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident : $ty:ty; $($t:tt)*) => {
-		__decl_storage_item!(() ($traittype as $traitinstance) () (OPTION_TYPE Option<$ty>) (get) (take) $cratename $name: $ty);
+		__decl_storage_item!(() ($traittype as $traitinstance) ($ty) $cratename $name: $ty = Default::default());
+		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
+	};
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident : $ty:ty = $default:expr; $($t:tt)*) => {
+		__decl_storage_item!(() ($traittype as $traitinstance) ($ty) $cratename $name: $ty = $default);
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
 	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident : $ty:ty; $($t:tt)*) => {
-		__decl_storage_item!((pub) ($traittype as $traitinstance) () (OPTION_TYPE Option<$ty>) (get) (take) $cratename $name: $ty);
+		__decl_storage_item!((pub) ($traittype as $traitinstance) ($ty) $cratename $name: $ty = Default::default());
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident : default $ty:ty; $($t:tt)*) => {
-		__decl_storage_item!(() ($traittype as $traitinstance) () (RAW_TYPE $ty) (get_or_default) (take_or_default) $cratename $name: $ty);
-		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
-	};
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident : default $ty:ty; $($t:tt)*) => {
-		__decl_storage_item!((pub) ($traittype as $traitinstance) () (RAW_TYPE $ty) (get_or_default) (take_or_default) $cratename $name: $ty);
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident : $ty:ty = $default:expr; $($t:tt)*) => {
+		__decl_storage_item!((pub) ($traittype as $traitinstance) ($ty) $cratename $name: $ty = $default);
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
 
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
-		__decl_storage_item!(() ($traittype as $traitinstance) ($getfn) (OPTION_TYPE Option<$ty>) (get) (take) $cratename $name: $ty);
+	// simple values with getters:
+	//  - pub
+	//  - no_config
+	//  - $default
+	// so there are 8 cases here.
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty; $($t:tt)*) => {
+		__decl_storage_item!(() ($traittype as $traitinstance) ($ty) $cratename $name: $ty = Default::default());
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
-		__decl_storage_item!((pub) ($traittype as $traitinstance) ($getfn) (OPTION_TYPE Option<$ty>) (get) (take) $cratename $name: $ty);
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident no_config get($getfn:ident) : $ty:ty; $($t:tt)*) => {
+		__decl_storage_item!(() ($traittype as $traitinstance) ($ty) $cratename $name: $ty = Default::default());
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : default $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
-		__decl_storage_item!(() ($traittype as $traitinstance) ($getfn) (RAW_TYPE $ty) (get_or_default) (take_or_default) $cratename $name: $ty);
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty = $default:expr; $($t:tt)*) => {
+		__decl_storage_item!(() ($traittype as $traitinstance) ($ty) $cratename $name: $ty = $default);
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : default $ty:ty $(: genesis = $default:expr)*; $($t:tt)*) => {
-		__decl_storage_item!((pub) ($traittype as $traitinstance) ($getfn) (RAW_TYPE $ty) (get_or_default) (take_or_default) $cratename $name: $ty);
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident no_config get($getfn:ident) : $ty:ty = $default:expr; $($t:tt)*) => {
+		__decl_storage_item!(() ($traittype as $traitinstance) ($ty) $cratename $name: $ty = $default);
+		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
+	};
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : $ty:ty; $($t:tt)*) => {
+		__decl_storage_item!((pub) ($traittype as $traitinstance) ($ty) $cratename $name: $ty = Default::default());
+		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
+	};
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident no_config get($getfn:ident) : $ty:ty; $($t:tt)*) => {
+		__decl_storage_item!((pub) ($traittype as $traitinstance) ($ty) $cratename $name: $ty = Default::default());
+		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
+	};
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : $ty:ty = $default:expr; $($t:tt)*) => {
+		__decl_storage_item!((pub) ($traittype as $traitinstance) ($ty) $cratename $name: $ty = $default);
+		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
+	};
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident no_config get($getfn:ident) : $ty:ty = $default:expr; $($t:tt)*) => {
+		__decl_storage_item!((pub) ($traittype as $traitinstance) ($ty) $cratename $name: $ty = $default);
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
 
-	// maps
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident : map [$kty:ty => $ty:ty]; $($t:tt)*) => {
-		__decl_storage_item!(() ($traittype as $traitinstance) () (OPTION_TYPE Option<$ty>) (get) (take) $cratename $name: map [$kty => $ty]);
+	// maps:
+	//  - pub
+	//  - $default
+	// so there are 4 cases here.
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident : Map<$kty:ty, $ty:ty>; $($t:tt)*) => {
+		__decl_storage_item!(() ($traittype as $traitinstance) ($ty) $cratename $name: map [$kty => $ty]);
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident : map [$kty:ty => $ty:ty]; $($t:tt)*) => {
-		__decl_storage_item!((pub) ($traittype as $traitinstance) () (OPTION_TYPE Option<$ty>) (get) (take) $cratename $name: map [$kty => $ty]);
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident : Map<$kty:ty, $ty:ty> = $default:expr; $($t:tt)*) => {
+		__decl_storage_item!(() ($traittype as $traitinstance) ($ty) $cratename $name: map [$kty => $ty]);
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident : default map [$kty:ty => $ty:ty]; $($t:tt)*) => {
-		__decl_storage_item!(() ($traittype as $traitinstance) () (RAW_TYPE $ty) (get_or_default) (take_or_default) $cratename $name: map [$kty => $ty]);
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident : Map<$kty:ty, $ty:ty>; $($t:tt)*) => {
+		__decl_storage_item!((pub) ($traittype as $traitinstance) ($ty) $cratename $name: map [$kty => $ty]);
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident : default map [$kty:ty => $ty:ty]; $($t:tt)*) => {
-		__decl_storage_item!((pub) ($traittype as $traitinstance) () (RAW_TYPE $ty) (get_or_default) (take_or_default) $cratename $name: map [$kty => $ty]);
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident : Map<$kty:ty, $ty:ty> = $default:expr; $($t:tt)*) => {
+		__decl_storage_item!((pub) ($traittype as $traitinstance) ($ty) $cratename $name: map [$kty => $ty]);
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
 
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : map [$kty:ty => $ty:ty]; $($t:tt)*) => {
-		__decl_storage_item!(() ($traittype as $traitinstance) ($getfn) (OPTION_TYPE Option<$ty>) (get) (take) $cratename $name: map [$kty => $ty]);
+	// maps:
+	//  - pub
+	//  - no_config
+	//  - $default
+	// so there are 8 cases here.
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : Map<$kty:ty, $ty:ty>; $($t:tt)*) => {
+		__decl_storage_item!(() ($traittype as $traitinstance) ($ty) $cratename $name: Map<$kty, $ty> = Default::default());
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : map [$kty:ty => $ty:ty]; $($t:tt)*) => {
-		__decl_storage_item!((pub) ($traittype as $traitinstance) ($getfn) (OPTION_TYPE Option<$ty>) (get) (take) $cratename $name: map [$kty => $ty]);
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident no_config get($getfn:ident) : Map<$kty:ty, $ty:ty>; $($t:tt)*) => {
+		__decl_storage_item!(() ($traittype as $traitinstance) ($ty) $cratename $name: Map<$kty, $ty> = Default::default());
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : default map [$kty:ty => $ty:ty]; $($t:tt)*) => {
-		__decl_storage_item!(() ($traittype as $traitinstance) ($getfn) (RAW_TYPE $ty) (get_or_default) (take_or_default) $cratename $name: map [$kty => $ty]);
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : Map<$kty:ty, $ty:ty> = $default:expr; $($t:tt)*) => {
+		__decl_storage_item!(() ($traittype as $traitinstance) ($ty) $cratename $name: Map<$kty, $ty> = $default);
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
-	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : default map [$kty:ty => $ty:ty]; $($t:tt)*) => {
-		__decl_storage_item!((pub) ($traittype as $traitinstance) ($getfn) (RAW_TYPE $ty) (get_or_default) (take_or_default) $cratename $name: map [$kty => $ty]);
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* $name:ident no_config get($getfn:ident) : Map<$kty:ty, $ty:ty> = $default:expr; $($t:tt)*) => {
+		__decl_storage_item!(() ($traittype as $traitinstance) ($ty) $cratename $name: Map<$kty, $ty> = $default);
+		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
+	};
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : Map<$kty:ty, $ty:ty>; $($t:tt)*) => {
+		__decl_storage_item!((pub) ($traittype as $traitinstance) ($ty) $cratename $name: Map<$kty, $ty> = Default::default());
+		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
+	};
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident no_config get($getfn:ident) : Map<$kty:ty, $ty:ty>; $($t:tt)*) => {
+		__decl_storage_item!((pub) ($traittype as $traitinstance) ($ty) $cratename $name: Map<$kty, $ty> = Default::default());
+		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
+	};
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : Map<$kty:ty, $ty:ty> = $default:expr; $($t:tt)*) => {
+		__decl_storage_item!((pub) ($traittype as $traitinstance) ($ty) $cratename $name: Map<$kty, $ty> = $default);
+		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
+	};
+	($cratename:ident $traittype:ident $traitinstance:ident $(#[$doc:meta])* pub $name:ident no_config get($getfn:ident) : Map<$kty:ty, $ty:ty> = $default:expr; $($t:tt)*) => {
+		__decl_storage_item!((pub) ($traittype as $traitinstance) ($ty) $cratename $name: Map<$kty, $ty> = $default);
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
 	};
 
@@ -744,10 +767,7 @@ macro_rules! __decl_storage_items {
 #[doc(hidden)]
 macro_rules! __decl_storage_item {
 	// generator for values.
-	(($($vis:tt)*) ($traittype:ident as $traitinstance:ident) ($get_fn:ident) ($wraptype:ident $gettype:ty) ($getter:ident) ($taker:ident) $cratename:ident $name:ident : $ty:ty) => {
-		__decl_storage_item!{ ($($vis)*) ($traittype as $traitinstance) () ($wraptype $gettype) ($getter) ($taker) $cratename $name : $ty }
-	};
-	(($($vis:tt)*) ($traittype:ident as $traitinstance:ident) () ($wraptype:ident $gettype:ty) ($getter:ident) ($taker:ident) $cratename:ident $name:ident : $ty:ty) => {
+	(($($vis:tt)*) ($traittype:ident as $traitinstance:ident) ($gettype:ty) $cratename:ident $name:ident : $ty:ty = $default:expr) => {
 		$($vis)* struct $name<$traitinstance: $traittype>($crate::storage::generator::PhantomData<$traitinstance>);
 
 		impl<$traitinstance: $traittype> $crate::storage::generator::StorageValue<$ty> for $name<$traitinstance> {
@@ -760,38 +780,26 @@ macro_rules! __decl_storage_item {
 
 			/// Load the value from the provided storage instance.
 			fn get<S: $crate::GenericStorage>(storage: &S) -> Self::Query {
-				storage.$getter(<$name<$traitinstance> as $crate::storage::generator::StorageValue<$ty>>::key())
+				storage.get(<$name<$traitinstance> as $crate::storage::generator::StorageValue<$ty>>::key())
+					.unwrap_or_else(|| $default);
 			}
 
 			/// Take a value from storage, removing it afterwards.
 			fn take<S: $crate::GenericStorage>(storage: &S) -> Self::Query {
-				storage.$taker(<$name<$traitinstance> as $crate::storage::generator::StorageValue<$ty>>::key())
+				storage.take(<$name<$traitinstance> as $crate::storage::generator::StorageValue<$ty>>::key())
+					.unwrap_or_else(|| $default);
 			}
 
 			/// Mutate the value under a key.
 			fn mutate<F: FnOnce(&mut Self::Query), S: $crate::GenericStorage>(f: F, storage: &S) {
 				let mut val = <Self as $crate::storage::generator::StorageValue<$ty>>::get(storage);
-
 				f(&mut val);
-
-				__handle_wrap_internal!($wraptype {
-					// raw type case
-					<Self as $crate::storage::generator::StorageValue<$ty>>::put(&val, storage)
-				} {
-					// Option<> type case
-					match val {
-						Some(val) => <Self as $crate::storage::generator::StorageValue<$ty>>::put(&val, storage),
-						None => <Self as $crate::storage::generator::StorageValue<$ty>>::kill(storage),
-					}
-				})
+				<Self as $crate::storage::generator::StorageValue<$ty>>::put(&val, storage)
 			}
 		}
 	};
 	// generator for maps.
-	(($($vis:tt)*) ($traittype:ident as $traitinstance:ident) ($get_fn:ident) ($wraptype:ident $gettype:ty) ($getter:ident) ($taker:ident) $cratename:ident $name:ident : map [$kty:ty => $ty:ty]) => {
-		__decl_storage_item!{ ($($vis)*) ($traittype as $traitinstance) () ($wraptype $gettype) ($getter) ($taker) $cratename $name : map [$kty => $ty] }
-	};
-	(($($vis:tt)*) ($traittype:ident as $traitinstance:ident) () ($wraptype:ident $gettype:ty) ($getter:ident) ($taker:ident) $cratename:ident $name:ident : map [$kty:ty => $ty:ty]) => {
+	(($($vis:tt)*) ($traittype:ident as $traitinstance:ident) ($gettype:ty) $cratename:ident $name:ident : Map<$kty:ty, $ty:ty> = $default:expr) => {
 		$($vis)* struct $name<$traitinstance: $traittype>($crate::storage::generator::PhantomData<$traitinstance>);
 
 		impl<$traitinstance: $traittype> $crate::storage::generator::StorageMap<$kty, $ty> for $name<$traitinstance> {
@@ -812,29 +820,20 @@ macro_rules! __decl_storage_item {
 			/// Load the value associated with the given key from the map.
 			fn get<S: $crate::GenericStorage>(key: &$kty, storage: &S) -> Self::Query {
 				let key = <$name<$traitinstance> as $crate::storage::generator::StorageMap<$kty, $ty>>::key_for(key);
-				storage.$getter(&key[..])
+				storage.get(&key[..]).unwrap_or_else(|| $default);
 			}
 
 			/// Take the value, reading and removing it.
 			fn take<S: $crate::GenericStorage>(key: &$kty, storage: &S) -> Self::Query {
 				let key = <$name<$traitinstance> as $crate::storage::generator::StorageMap<$kty, $ty>>::key_for(key);
-				storage.$taker(&key[..])
+				storage.take(&key[..]).unwrap_or_else(|| $default);
 			}
 
 			/// Mutate the value under a key
 			fn mutate<F: FnOnce(&mut Self::Query), S: $crate::GenericStorage>(key: &$kty, f: F, storage: &S) {
 				let mut val = <Self as $crate::storage::generator::StorageMap<$kty, $ty>>::take(key, storage);
-
 				f(&mut val);
-
-				__handle_wrap_internal!($wraptype {
-					<Self as $crate::storage::generator::StorageMap<$kty, $ty>>::insert(key, &val, storage);
-				} {
-					match val {
-						Some(val) => <Self as $crate::storage::generator::StorageMap<$kty, $ty>>::insert(key, &val, storage),
-						None => <Self as $crate::storage::generator::StorageMap<$kty, $ty>>::remove(key, storage),
-					}
-				});
+				<Self as $crate::storage::generator::StorageMap<$kty, $ty>>::insert(key, &val, storage);
 			}
 		}
 	};
@@ -843,6 +842,11 @@ macro_rules! __decl_storage_item {
 #[macro_export]
 #[doc(hidden)]
 macro_rules! __decl_store_items {
+
+
+
+
+
 	// simple values
 	($(#[$doc:meta])* $name:ident : default $ty:ty; $($t:tt)*) => {
 		__decl_store_item!($name); __decl_store_items!($($t)*);
