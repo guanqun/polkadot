@@ -333,16 +333,16 @@ macro_rules! __storage_items_internal {
 
 				f(&mut val);
 
-//				__handle_wrap_internal!($wraptype {
-//					// raw type case
-//					<Self as $crate::storage::generator::StorageValue<$ty>>::put(&val, storage)
-//				} {
-//					// Option<> type case
-//					match val {
-//						Some(val) => <Self as $crate::storage::generator::StorageValue<$ty>>::put(&val, storage),
-//						None => <Self as $crate::storage::generator::StorageValue<$ty>>::kill(storage),
-//					}
-//				});
+				__handle_wrap_internal!($wraptype {
+					// raw type case
+					<Self as $crate::storage::generator::StorageValue<$ty>>::put(&val, storage)
+				} {
+					// Option<> type case
+					match val {
+						Some(val) => <Self as $crate::storage::generator::StorageValue<$ty>>::put(&val, storage),
+						None => <Self as $crate::storage::generator::StorageValue<$ty>>::kill(storage),
+					}
+				});
 			}
 		}
 	};
@@ -389,16 +389,16 @@ macro_rules! __storage_items_internal {
 
 				f(&mut val);
 
-//				__handle_wrap_internal!($wraptype {
-//					// raw type case
-//					<Self as $crate::storage::generator::StorageMap<$kty, $ty>>::insert(key, &val, storage)
-//				} {
-//					// Option<> type case
-//					match val {
-//						Some(val) => <Self as $crate::storage::generator::StorageMap<$kty, $ty>>::insert(key, &val, storage),
-//						None => <Self as $crate::storage::generator::StorageMap<$kty, $ty>>::remove(key, storage),
-//					}
-//				});
+				__handle_wrap_internal!($wraptype {
+					// raw type case
+					<Self as $crate::storage::generator::StorageMap<$kty, $ty>>::insert(key, &val, storage)
+				} {
+					// Option<> type case
+					match val {
+						Some(val) => <Self as $crate::storage::generator::StorageMap<$kty, $ty>>::insert(key, &val, storage),
+						None => <Self as $crate::storage::generator::StorageMap<$kty, $ty>>::remove(key, storage),
+					}
+				});
 			}
 		}
 	};
@@ -480,6 +480,17 @@ macro_rules! __storage_items_internal {
 				storage.kill(&<$name as $crate::storage::generator::StorageList<$ty>>::len_key()[..])
 			}
 		}
+	};
+}
+
+#[macro_export]
+#[doc(hidden)]
+macro_rules! __handle_wrap_internal {
+	(RAW_TYPE { $($raw:tt)* } { $($option:tt)* }) => {
+		$($raw)*;
+	};
+	(OPTION_TYPE { $($raw:tt)* } { $($option:tt)* }) => {
+		$($option)*;
 	};
 }
 
