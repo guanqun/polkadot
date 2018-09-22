@@ -1130,6 +1130,46 @@ macro_rules! __decl_store_item {
 #[macro_export]
 #[doc(hidden)]
 macro_rules! __impl_store_fns {
+	// with Option<>
+	// maps:
+	//  - pub
+	//  - no_config
+	//  - $default
+	// so there are 8 cases here.
+	($traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : Map<$kty:ty, Option<$ty:ty> >; $($t:tt)*) => {
+		__impl_store_fn!($traitinstance $name $getfn (Option<$ty>) Map<$kty, $ty>);
+		__impl_store_fns!($traitinstance $($t)*);
+	};
+	($traitinstance:ident $(#[$doc:meta])* $name:ident no_config get($getfn:ident) : Map<$kty:ty, Option<$ty:ty> >; $($t:tt)*) => {
+		__impl_store_fn!($traitinstance $name $getfn (Option<$ty>) Map<$kty, $ty>);
+		__impl_store_fns!($traitinstance $($t)*);
+	};
+	($traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : Map<$kty:ty, Option<$ty:ty> > = $default:expr; $($t:tt)*) => {
+		__impl_store_fn!($traitinstance $name $getfn (Option<$ty>) Map<$kty, $ty>);
+		__impl_store_fns!($traitinstance $($t)*);
+	};
+	($traitinstance:ident $(#[$doc:meta])* $name:ident no_config get($getfn:ident) : Map<$kty:ty, Option<$ty:ty> > = $default:expr; $($t:tt)*) => {
+		__impl_store_fn!($traitinstance $name $getfn (Option<$ty>) Map<$kty, $ty>);
+		__impl_store_fns!($traitinstance $($t)*);
+	};
+	($traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : Map<$kty:ty, Option<$ty:ty> >; $($t:tt)*) => {
+		__impl_store_fn!($traitinstance $name $getfn (Option<$ty>) Map<$kty, $ty>);
+		__impl_store_fns!($traitinstance $($t)*);
+	};
+	($traitinstance:ident $(#[$doc:meta])* pub $name:ident no_config get($getfn:ident) : Map<$kty:ty, Option<$ty:ty> >; $($t:tt)*) => {
+		__impl_store_fn!($traitinstance $name $getfn (Option<$ty>) Map<$kty, $ty>);
+		__impl_store_fns!($traitinstance $($t)*);
+	};
+	($traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : Map<$kty:ty, Option<$ty:ty> > = $default:expr; $($t:tt)*) => {
+		__impl_store_fn!($traitinstance $name $getfn (Option<$ty>) Map<$kty, $ty>);
+		__impl_store_fns!($traitinstance $($t)*);
+	};
+	($traitinstance:ident $(#[$doc:meta])* pub $name:ident no_config get($getfn:ident) : Map<$kty:ty, Option<$ty:ty> > = $default:expr; $($t:tt)*) => {
+		__impl_store_fn!($traitinstance $name $getfn (Option<$ty>) Map<$kty, $ty>);
+		__impl_store_fns!($traitinstance $($t)*);
+	};
+
+	// without Option<>
 	// maps:
 	//  - pub
 	//  - $default
@@ -1185,6 +1225,46 @@ macro_rules! __impl_store_fns {
 		__impl_store_fns!($traitinstance $($t)*);
 	};
 
+	// with Option<>
+	// simple values with getters:
+	//  - pub
+	//  - no_config
+	//  - $default
+	// so there are 8 cases here.
+	($traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : Option<$ty:ty>; $($t:tt)*) => {
+		__impl_store_fn!($traitinstance $name $getfn (Option<$ty>) $ty);
+		__impl_store_fns!($traitinstance $($t)*);
+	};
+	($traitinstance:ident $(#[$doc:meta])* $name:ident no_config get($getfn:ident) : Option<$ty:ty>; $($t:tt)*) => {
+		__impl_store_fn!($traitinstance $name $getfn (Option<$ty>) $ty);
+		__impl_store_fns!($traitinstance $($t)*);
+	};
+	($traitinstance:ident $(#[$doc:meta])* $name:ident get($getfn:ident) : Option<$ty:ty> = $default:expr; $($t:tt)*) => {
+		__impl_store_fn!($traitinstance $name $getfn (Option<$ty>) $ty);
+		__impl_store_fns!($traitinstance $($t)*);
+	};
+	($traitinstance:ident $(#[$doc:meta])* $name:ident no_config get($getfn:ident) : Option<$ty:ty> = $default:expr; $($t:tt)*) => {
+		__impl_store_fn!($traitinstance $name $getfn (Option<$ty>) $ty);
+		__impl_store_fns!($traitinstance $($t)*);
+	};
+	($traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : Option<$ty:ty>; $($t:tt)*) => {
+		__impl_store_fn!($traitinstance $name $getfn (Option<$ty>) $ty);
+		__impl_store_fns!($traitinstance $($t)*);
+	};
+	($traitinstance:ident $(#[$doc:meta])* pub $name:ident no_config get($getfn:ident) : Option<$ty:ty>; $($t:tt)*) => {
+		__impl_store_fn!($traitinstance $name $getfn (Option<$ty>) $ty);
+		__impl_store_fns!($traitinstance $($t)*);
+	};
+	($traitinstance:ident $(#[$doc:meta])* pub $name:ident get($getfn:ident) : Option<$ty:ty> = $default:expr; $($t:tt)*) => {
+		__impl_store_fn!($traitinstance $name $getfn (Option<$ty>) $ty);
+		__impl_store_fns!($traitinstance $($t)*);
+	};
+	($traitinstance:ident $(#[$doc:meta])* pub $name:ident no_config get($getfn:ident) : Option<$ty:ty> = $default:expr; $($t:tt)*) => {
+		__impl_store_fn!($traitinstance $name $getfn (Option<$ty>) $ty);
+		__impl_store_fns!($traitinstance $($t)*);
+	};
+
+	// without Option<>
 	// simple values without getters:
 	//  - pub
 	//  - $default
@@ -1715,6 +1795,7 @@ mod tests {
 	decl_storage! {
 		trait Store for Module<T: Trait> as TestStorage {
 			// non-getters: pub / $default
+
 			/// Hello, this is doc!
 			U32 : Option<u32> = Some(3);
 			pub PUBU32 : Option<u32>;
@@ -1731,6 +1812,7 @@ mod tests {
 			pub PUBGETU32MYDEF get(pub_u32_getter_mydef): u32 = 3;
 			GETU32NOCONFIGMYDEF no_config get(u32_getter_no_config_mydef): u32 = 2;
 			pub PUBGETU32NOCONFIGMYDEF no_config get(pub_u32_getter_no_config_mydef): u32 = 1;
+			PUBGETU32NOCONFIGMYDEFOPT no_config get(pub_u32_getter_no_config_mydef_opt): Option<u32> = Some(100);
 
 			// map non-getters: pub / $default
 			MAPU32 : Map<u32, Option<String>>;
@@ -1747,6 +1829,7 @@ mod tests {
 			pub PUBGETMAPU32MYDEF get(pub_map_u32_getter_mydef): Map<u32, String> = "pubmap".into();
 			GETMAPU32NOCONFIGMYDEF no_config get(map_u32_getter_no_config_my_def): Map<u32, String> = "noconfigmap".into();
 			pub PUBGETMAPU32NOCONFIGMYDEF no_config get(pub_map_u32_getter_no_config_mydef): Map<u32, String> = "pubnoconfigmap".into();
+			PUBGETMAPU32NOCONFIGMYDEFOPT no_config get(pub_map_u32_getter_no_config_mydef_opt): Map<u32, Option<String> > = Some("pubnoconfigmap".into());
 		}
 	}
 
@@ -1819,6 +1902,11 @@ mod tests {
 			StorageFunctionMetadata {
 				name: DecodeDifferent::Encode("PUBGETU32NOCONFIGMYDEF"),
 				ty: StorageFunctionType::Plain(DecodeDifferent::Encode("u32")),
+				documentation: DecodeDifferent::Encode(&[]),
+			},
+			StorageFunctionMetadata {
+				name: DecodeDifferent::Encode("PUBGETU32NOCONFIGMYDEFOPT"),
+				ty: StorageFunctionType::Plain(DecodeDifferent::Encode("Option<u32>")),
 				documentation: DecodeDifferent::Encode(&[]),
 			},
 
@@ -1907,7 +1995,14 @@ mod tests {
 					key: DecodeDifferent::Encode("u32"), value: DecodeDifferent::Encode("String")
 				},
 				documentation: DecodeDifferent::Encode(&[]),
-			}
+			},
+			StorageFunctionMetadata {
+				name: DecodeDifferent::Encode("PUBGETMAPU32NOCONFIGMYDEFOPT"),
+				ty: StorageFunctionType::Map{
+					key: DecodeDifferent::Encode("u32"), value: DecodeDifferent::Encode("Option<String>")
+				},
+				documentation: DecodeDifferent::Encode(&[]),
+			},
 		])
 	};
 
