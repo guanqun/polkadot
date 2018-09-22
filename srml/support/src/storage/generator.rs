@@ -536,7 +536,7 @@ macro_rules! decl_storage {
 		}
 		impl<$traitinstance: $traittype> $modulename<$traitinstance> {
 			__impl_store_fns!($traitinstance $($t)*);
-//			__impl_store_metadata!($cratename; $($t)*);
+			__impl_store_metadata!($cratename; $($t)*);
 		}
 		//__decl_genesis_config_items!($traitinstance $traittype [] $($t)*);
 	};
@@ -1229,18 +1229,18 @@ macro_rules! __impl_store_metadata {
 #[macro_export]
 #[doc(hidden)]
 macro_rules! __store_functions_to_metadata {
-	// maps
+	// maps: pub / $default
 	(
 		$( $metadata:expr ),*;
 		$(#[doc = $doc_attr:tt])*
 		$name:ident :
-			default map [$kty:ty => $ty:ty];
+			Map<$kty:ty, $ty:ty> $(= $default:expr)*;
 		$( $t:tt )*
 	) => {
 		__store_functions_to_metadata!(
 			$( $metadata, )*
 			__store_function_to_metadata!(
-				$( $doc_attr ),*; $name, __store_type_to_metadata!($kty, $ty), default
+				$( $doc_attr ),*; $name; __store_type_to_metadata!($kty, $ty)
 			);
 			$( $t )*
 		)
@@ -1249,103 +1249,169 @@ macro_rules! __store_functions_to_metadata {
 		$( $metadata:expr ),*;
 		$(#[doc = $doc_attr:tt])*
 		pub $name:ident :
-			Map<$kty:ty, $ty:ty>;
+			Map<$kty:ty, $ty:ty> $(= $default:expr)*;
 		$($t:tt)*
 	) => {
 		__store_functions_to_metadata!(
 			$( $metadata, )*
 			__store_function_to_metadata!(
-				$( $doc_attr ),*; $name, __store_type_to_metadata!($kty, $ty), default
-			);
-			$( $t )*
-		)
-	};
-	(
-		$( $metadata:expr ),*;
-		$(#[doc = $doc_attr:tt])*
-		$name:ident :
-			map [$kty:ty => $ty:ty];
-		$($t:tt)*
-	) => {
-		__store_functions_to_metadata!(
-			$( $metadata, )*
-			__store_function_to_metadata!(
-				$( $doc_attr ),*; $name, __store_type_to_metadata!($kty, $ty)
-			);
-			$( $t )*
-		)
-	};
-	(
-		$( $metadata:expr ),*;
-		$(#[doc = $doc_attr:tt])*
-		pub $name:ident :
-			map [$kty:ty => $ty:ty];
-		$($t:tt)*
-	) => {
-		__store_functions_to_metadata!(
-			$( $metadata, )*
-			__store_function_to_metadata!(
-				$( $doc_attr ),*; $name, __store_type_to_metadata!($kty, $ty)
+				$( $doc_attr ),*; $name; __store_type_to_metadata!($kty, $ty)
 			);
 			$( $t )*
 		)
 	};
 
-	(
-		$( $metadata:expr ),*;
-		$(#[doc = $doc_attr:tt])* $name:ident get($getfn:ident) :
-			default map [$kty:ty => $ty:ty];
-		$($t:tt)*
-	) => {
-		__store_functions_to_metadata!(
-			$( $metadata, )*
-			__store_function_to_metadata!(
-				$( $doc_attr ),*; $name, __store_type_to_metadata!($kty, $ty), default
-			);
-			$( $t )*
-		)
-	};
-	(
-		$( $metadata:expr ),*;
-		$(#[doc = $doc_attr:tt])*
-		pub $name:ident get($getfn:ident) :
-			default map [$kty:ty => $ty:ty];
-		$($t:tt)*
-	) => {
-		__store_functions_to_metadata!(
-			$( $metadata, )*
-			__store_function_to_metadata!(
-				$( $doc_attr ),*; $name, __store_type_to_metadata!($kty, $ty), default
-			);
-			$( $t )*
-		)
-	};
+	// map getters: pub / no_config / $default
 	(
 		$( $metadata:expr ),*;
 		$(#[doc = $doc_attr:tt])*
 		$name:ident get($getfn:ident) :
-			map [$kty:ty => $ty:ty];
+			Map<$kty:ty, $ty:ty> $(= $default:expr)*;
 		$($t:tt)*
 	) => {
 		__store_functions_to_metadata!(
 			$( $metadata, )*
 			__store_function_to_metadata!(
-				$( $doc_attr ),*; $name, __store_type_to_metadata!($kty, $ty)
-			); $( $t )*
+				$( $doc_attr ),*; $name; __store_type_to_metadata!($kty, $ty)
+			);
+			$( $t )*
 		)
 	};
 	(
 		$( $metadata:expr ),*;
 		$(#[doc = $doc_attr:tt])*
 		pub $name:ident get($getfn:ident) :
-			map [$kty:ty => $ty:ty];
+			Map<$kty:ty, $ty:ty> $(= $default:expr)*;
 		$($t:tt)*
 	) => {
 		__store_functions_to_metadata!(
 			$( $metadata, )*
 			__store_function_to_metadata!(
-				$( $doc_attr ),*; $name, __store_type_to_metadata!($kty, $ty)
-			); $( $t )*
+				$( $doc_attr ),*; $name; __store_type_to_metadata!($kty, $ty)
+			);
+			$( $t )*
+		)
+	};
+	(
+		$( $metadata:expr ),*;
+		$(#[doc = $doc_attr:tt])*
+		$name:ident no_config get($getfn:ident) :
+			Map<$kty:ty, $ty:ty> $(= $default:expr)*;
+		$($t:tt)*
+	) => {
+		__store_functions_to_metadata!(
+			$( $metadata, )*
+			__store_function_to_metadata!(
+				$( $doc_attr ),*; $name; __store_type_to_metadata!($kty, $ty)
+			);
+			$( $t )*
+		)
+	};
+	(
+		$( $metadata:expr ),*;
+		$(#[doc = $doc_attr:tt])*
+		pub $name:ident no_config get($getfn:ident) :
+			Map<$kty:ty, $ty:ty> $(= $default:expr)*;
+		$($t:tt)*
+	) => {
+		__store_functions_to_metadata!(
+			$( $metadata, )*
+			__store_function_to_metadata!(
+				$( $doc_attr ),*; $name; __store_type_to_metadata!($kty, $ty)
+			);
+			$( $t )*
+		)
+	};
+
+	// simple values: pub / $default
+	(
+		$( $metadata:expr ),*;
+		$(#[doc = $doc_attr:tt])*
+		$name:ident : $ty:ty $(= $default:expr)*;
+		$($t:tt)*
+	) => {
+		__store_functions_to_metadata!(
+			$( $metadata, )*
+			__store_function_to_metadata!(
+				$( $doc_attr ),*; $name; __store_type_to_metadata!($ty)
+			);
+			$( $t )*
+		)
+	};
+	(
+		$( $metadata:expr ),*;
+		$(#[doc = $doc_attr:tt])*
+		pub $name:ident : $ty:ty $(= $default:expr)*;
+		$($t:tt)*
+	) => {
+		__store_functions_to_metadata!(
+			$( $metadata, )*
+			__store_function_to_metadata!(
+				$( $doc_attr ),*; $name; __store_type_to_metadata!($ty)
+			);
+			$( $t )*
+		)
+	};
+
+	// simple values getters: pub / no_config / $default
+	(
+		$( $metadata:expr ),*;
+		$(#[doc = $doc_attr:tt])*
+		$name:ident get($getfn:ident) :
+			$ty:ty $(= $default:expr)*;
+		$($t:tt)*
+	) => {
+		__store_functions_to_metadata!(
+			$( $metadata, )*
+			__store_function_to_metadata!(
+				$( $doc_attr ),*; $name; __store_type_to_metadata!($ty)
+			);
+			$( $t )*
+		)
+	};
+	(
+		$( $metadata:expr ),*;
+		$(#[doc = $doc_attr:tt])*
+		pub $name:ident get($getfn:ident) :
+			$ty:ty $(= $default:expr)*;
+		$($t:tt)*
+	) => {
+		__store_functions_to_metadata!(
+			$( $metadata, )*
+			__store_function_to_metadata!(
+				$( $doc_attr ),*; $name; __store_type_to_metadata!($ty)
+			);
+			$( $t )*
+		)
+	};
+	(
+		$( $metadata:expr ),*;
+		$(#[doc = $doc_attr:tt])*
+		$name:ident no_config get($getfn:ident) :
+			$ty:ty $(= $default:expr)*;
+		$($t:tt)*
+	) => {
+		__store_functions_to_metadata!(
+			$( $metadata, )*
+			__store_function_to_metadata!(
+				$( $doc_attr ),*; $name; __store_type_to_metadata!($ty)
+			);
+			$( $t )*
+		)
+	};
+	(
+		$( $metadata:expr ),*;
+		$(#[doc = $doc_attr:tt])*
+		pub $name:ident no_config get($getfn:ident) :
+			$ty:ty $(= $default:expr)*;
+		$($t:tt)*
+	) => {
+		__store_functions_to_metadata!(
+			$( $metadata, )*
+			__store_function_to_metadata!(
+				$( $doc_attr ),*; $name; __store_type_to_metadata!($ty)
+			);
+			$( $t )*
 		)
 	};
 	(
@@ -1354,94 +1420,6 @@ macro_rules! __store_functions_to_metadata {
 		$crate::storage::generator::DecodeDifferent::Encode(&[
 			$( $metadata ),*
 		])
-	};
-
-	// simple values
-	(
-		$( $metadata:expr ),*;
-		$(#[doc = $doc_attr:tt])*
-		$name:ident : $ty:ty;
-		$($t:tt)*
-	) => {
-		__store_functions_to_metadata!(
-			$( $metadata, )*
-			__store_function_to_metadata!(
-				$( $doc_attr ),*; $name, __store_type_to_metadata!($ty)
-			);
-			$( $t )*
-		)
-	};
-	(
-		$( $metadata:expr ),*;
-		$(#[doc = $doc_attr:tt])*
-		pub $name:ident : $ty:ty;
-		$($t:tt)*
-	) => {
-		__store_functions_to_metadata!(
-			$( $metadata, )*
-			__store_function_to_metadata!(
-				$( $doc_attr ),*; $name, __store_type_to_metadata!($ty)
-			);
-			$( $t )*
-		)
-	};
-	(
-		$( $metadata:expr ),*;
-		$(#[doc = $doc_attr:tt])*
-		$name:ident get($getfn:ident) :
-			default $ty:ty $(: genesis = $default:expr)*;
-		$($t:tt)*
-	) => {
-		__store_functions_to_metadata!(
-			$( $metadata, )*
-			__store_function_to_metadata!(
-				$( $doc_attr ),*; $name, __store_type_to_metadata!($ty), default
-			);
-			$( $t )*
-		)
-	};
-	(
-		$( $metadata:expr ),*;
-		$(#[doc = $doc_attr:tt])*
-		pub $name:ident get($getfn:ident) :
-			default $ty:ty $(: genesis = $default:expr)*;
-		$($t:tt)*
-	) => {
-		__store_functions_to_metadata!(
-			$( $metadata, )*
-			__store_function_to_metadata!(
-				$( $doc_attr ),*; $name, __store_type_to_metadata!($ty), default
-			);
-			$( $t )*
-		)
-	};
-	(
-		$( $metadata:expr ),*;
-		$(#[doc = $doc_attr:tt])*
-		$name:ident get($getfn:ident) : $ty:ty $(: genesis = $default:expr)*;
-		$( $t:tt )*
-	) => {
-		__store_functions_to_metadata!(
-			$( $metadata, )*
-			__store_function_to_metadata!(
-				$( $doc_attr ),*; $name, __store_type_to_metadata!($ty)
-			);
-			$( $t )*
-		)
-	};
-	(
-		$( $metadata:expr ),*;
-		$(#[doc = $doc_attr:tt])*
-		pub $name:ident get($getfn:ident) : $ty:ty $(: genesis = $default:expr)*;
-		$( $t:tt )*
-	) => {
-		__store_functions_to_metadata!(
-			$( $metadata, )*
-			__store_function_to_metadata!(
-				$( $doc_attr ),*; $name, __store_type_to_metadata!($ty)
-			);
-			$( $t )*
-		)
 	}
 }
 
@@ -1583,10 +1561,10 @@ mod tests {
 			pub PUBGETMAPU32 get(pub_map_u32_getter): Map<u32, String>;
 			GETMAPU32NOCONFIG no_config get(map_u32_getter_no_config): Map<u32, String>;
 			pub PUBGETMAPU32NOCONFIG no_config get(pub_map_u32_getter_no_config): Map<u32, String>;
-			GETMAPU32MYDEF get(map_u32_getter): Map<u32, String> = "map".into();
-			pub PUBGETMAPU32MYDEF get(pub_map_u32_getter): Map<u32, String> = "pubmap".into();
-			GETMAPU32NOCONFIGMYDEF no_config get(map_u32_getter_no_config): Map<u32, String> = "noconfigmap".into();
-			pub PUBGETMAPU32NOCONFIGMYDEF no_config get(pub_map_u32_getter_no_config): Map<u32, String> = "pubnoconfigmap".into();
+			GETMAPU32MYDEF get(map_u32_getter_mydef): Map<u32, String> = "map".into();
+			pub PUBGETMAPU32MYDEF get(pub_map_u32_getter_mydef): Map<u32, String> = "pubmap".into();
+			GETMAPU32NOCONFIGMYDEF no_config get(map_u32_getter_no_config_my_def): Map<u32, String> = "noconfigmap".into();
+			pub PUBGETMAPU32NOCONFIGMYDEF no_config get(pub_map_u32_getter_no_config_mydef): Map<u32, String> = "pubnoconfigmap".into();
 		}
 	}
 
