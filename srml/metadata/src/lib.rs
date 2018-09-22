@@ -236,7 +236,6 @@ pub struct StorageMetadata {
 #[cfg_attr(feature = "std", derive(Decode, Debug, Serialize))]
 pub struct StorageFunctionMetadata {
 	pub name: DecodeDifferentStr,
-	pub modifier: StorageFunctionModifier,
 	pub ty: StorageFunctionType,
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
@@ -250,14 +249,6 @@ pub enum StorageFunctionType {
 		key: DecodeDifferentStr,
 		value: DecodeDifferentStr,
 	}
-}
-
-/// A storage function modifier.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Debug, Serialize))]
-pub enum StorageFunctionModifier { // TODO: we probably need to remove this totally.
-	None,
-	Default,
 }
 
 /// All metadata about an runtime module.
