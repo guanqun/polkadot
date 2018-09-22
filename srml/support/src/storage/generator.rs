@@ -1503,51 +1503,51 @@ mod tests {
 		}
 	}
 
-//	storage_items! {
-//		Value: b"a" => u32;
-//		List: b"b:" => list [u64];
-//		Map: b"c:" => map [u32 => [u8; 32]];
-//	}
-//
-//	#[test]
-//	fn value() {
-//		let storage = RefCell::new(HashMap::new());
-//		assert!(Value::get(&storage).is_none());
-//		Value::put(&100_000, &storage);
-//		assert_eq!(Value::get(&storage), Some(100_000));
-//		Value::kill(&storage);
-//		assert!(Value::get(&storage).is_none());
-//	}
-//
-//	#[test]
-//	fn list() {
-//		let storage = RefCell::new(HashMap::new());
-//		assert_eq!(List::len(&storage), 0);
-//		assert!(List::items(&storage).is_empty());
-//
-//		List::set_items(&[0, 2, 4, 6, 8], &storage);
-//		assert_eq!(List::items(&storage), &[0, 2, 4, 6, 8]);
-//		assert_eq!(List::len(&storage), 5);
-//
-//		List::set_item(2, &10, &storage);
-//		assert_eq!(List::items(&storage), &[0, 2, 10, 6, 8]);
-//		assert_eq!(List::len(&storage), 5);
-//
-//		List::clear(&storage);
-//		assert_eq!(List::len(&storage), 0);
-//		assert!(List::items(&storage).is_empty());
-//	}
-//
-//	#[test]
-//	fn map() {
-//		let storage = RefCell::new(HashMap::new());
-//		assert!(Map::get(&5, &storage).is_none());
-//		Map::insert(&5, &[1; 32], &storage);
-//		assert_eq!(Map::get(&5, &storage), Some([1; 32]));
-//		assert_eq!(Map::take(&5, &storage), Some([1; 32]));
-//		assert!(Map::get(&5, &storage).is_none());
-//		assert!(Map::get(&999, &storage).is_none());
-//	}
+	storage_items! {
+		Value: b"a" => u32;
+		List: b"b:" => list [u64];
+		Map: b"c:" => map [u32 => [u8; 32]];
+	}
+
+	#[test]
+	fn value() {
+		let storage = RefCell::new(HashMap::new());
+		assert!(Value::get(&storage).is_none());
+		Value::put(&100_000, &storage);
+		assert_eq!(Value::get(&storage), Some(100_000));
+		Value::kill(&storage);
+		assert!(Value::get(&storage).is_none());
+	}
+
+	#[test]
+	fn list() {
+		let storage = RefCell::new(HashMap::new());
+		assert_eq!(List::len(&storage), 0);
+		assert!(List::items(&storage).is_empty());
+
+		List::set_items(&[0, 2, 4, 6, 8], &storage);
+		assert_eq!(List::items(&storage), &[0, 2, 4, 6, 8]);
+		assert_eq!(List::len(&storage), 5);
+
+		List::set_item(2, &10, &storage);
+		assert_eq!(List::items(&storage), &[0, 2, 10, 6, 8]);
+		assert_eq!(List::len(&storage), 5);
+
+		List::clear(&storage);
+		assert_eq!(List::len(&storage), 0);
+		assert!(List::items(&storage).is_empty());
+	}
+
+	#[test]
+	fn map() {
+		let storage = RefCell::new(HashMap::new());
+		assert!(Map::get(&5, &storage).is_none());
+		Map::insert(&5, &[1; 32], &storage);
+		assert_eq!(Map::get(&5, &storage), Some([1; 32]));
+		assert_eq!(Map::take(&5, &storage), Some([1; 32]));
+		assert!(Map::get(&5, &storage).is_none());
+		assert!(Map::get(&999, &storage).is_none());
+	}
 
 	pub trait Trait {
 		 type Origin: codec::Encode + codec::Decode + ::std::default::Default;
