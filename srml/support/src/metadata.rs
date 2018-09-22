@@ -168,7 +168,7 @@ mod tests {
 
 		decl_storage! {
 			trait Store for ModuleWithStorage<T: Trait> as TestStorage {
-				StorageMethod : u32;
+				StorageMethod : Option<u32>;
 			}
 		}
 	}

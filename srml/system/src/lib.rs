@@ -179,19 +179,19 @@ impl From<RawLog<substrate_primitives::H256>> for primitives::testing::DigestIte
 decl_storage! {
 	trait Store for Module<T: Trait> as System {
 
-		pub AccountNonce get(account_nonce): default map [ T::AccountId => T::Index ];
+		pub AccountNonce no_config get(account_nonce): Map<T::AccountId, T::Index>;
 
-		ExtrinsicCount: u32;
-		pub BlockHash get(block_hash): required map [ T::BlockNumber => T::Hash ];
-		ExtrinsicData get(extrinsic_data): required map [ u32 => Vec<u8> ];
-		RandomSeed get(random_seed): required T::Hash;
+		ExtrinsicCount: Option<u32>;
+		pub BlockHash no_config get(block_hash): Map<T::BlockNumber, T::Hash>;
+		ExtrinsicData no_config get(extrinsic_data): Map<u32, Vec<u8>>;
+		RandomSeed no_config get(random_seed): T::Hash;
 		/// The current block number being processed. Set by `execute_block`.
-		Number get(block_number): required T::BlockNumber;
-		ParentHash get(parent_hash): required T::Hash;
-		ExtrinsicsRoot get(extrinsics_root): required T::Hash;
-		Digest get(digest): default T::Digest;
+		Number no_config get(block_number): T::BlockNumber;
+		ParentHash no_config get(parent_hash): T::Hash;
+		ExtrinsicsRoot no_config get(extrinsics_root): T::Hash;
+		Digest no_config get(digest): T::Digest;
 
-		Events get(events): default Vec<EventRecord<T::Event>>;
+		Events no_config get(events): Vec<EventRecord<T::Event>>;
 	}
 }
 

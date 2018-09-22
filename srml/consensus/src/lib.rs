@@ -118,7 +118,7 @@ decl_storage! {
 	trait Store for Module<T: Trait> as Consensus {
 		// Authorities set actual at the block execution start. IsSome only if
 		// the set has been changed.
-		OriginalAuthorities: Vec<T::SessionKey>;
+		OriginalAuthorities: Option<Vec<T::SessionKey>>;
 	}
 }
 

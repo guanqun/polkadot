@@ -107,30 +107,30 @@ decl_storage! {
 
 		/// Proportion of funds that should be bonded in order to place a proposal. An accepted
 		/// proposal gets these back. A rejected proposal doesn't.
-		ProposalBond get(proposal_bond): required Permill : genesis = Default::default();
+		ProposalBond get(proposal_bond): Permill;
 
 		/// Minimum amount of funds that should be placed in a deposit for making a proposal.
-		ProposalBondMinimum get(proposal_bond_minimum): required T::Balance : genesis = Default::default();
+		ProposalBondMinimum get(proposal_bond_minimum): T::Balance;
 
 		/// Period between successive spends.
-		SpendPeriod get(spend_period): required T::BlockNumber : genesis = runtime_primitives::traits::One::one();
+		SpendPeriod get(spend_period): T::BlockNumber = runtime_primitives::traits::One::one();
 
 		/// Percentage of spare funds (if any) that are burnt per spend period.
-		Burn get(burn): required Permill : genesis = Default::default();
+		Burn get(burn): Permill;
 
 		// State...
 
 		/// Total funds available to this module for spending.
-		Pot get(pot): default T::Balance;
+		Pot no_config get(pot): T::Balance;
 
 		/// Number of proposals that have been made.
-		ProposalCount get(proposal_count): default ProposalIndex;
+		ProposalCount no_config get(proposal_count): ProposalIndex;
 
 		/// Proposals that have been made.
-		Proposals get(proposals): map [ ProposalIndex => Proposal<T::AccountId, T::Balance> ];
+		Proposals no_config get(proposals): Map<ProposalIndex, Option<Proposal<T::AccountId, T::Balance>>>;
 
 		/// Proposal indices that have been approved but not yet awarded.
-		Approvals get(approvals): default Vec<ProposalIndex>;
+		Approvals no_config get(approvals): Vec<ProposalIndex>;
 	}
 }
 

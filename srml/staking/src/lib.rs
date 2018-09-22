@@ -140,53 +140,53 @@ decl_storage! {
 	trait Store for Module<T: Trait> as Staking {
 
 		/// The ideal number of staking participants.
-		pub ValidatorCount get(validator_count): required u32;
+		pub ValidatorCount no_config get(validator_count): u32;
 		/// Minimum number of staking participants before emergency conditions are imposed.
-		pub MinimumValidatorCount: u32;
+		pub MinimumValidatorCount: Option<u32>;
 		/// The length of a staking era in sessions.
-		pub SessionsPerEra get(sessions_per_era): required T::BlockNumber;
+		pub SessionsPerEra no_config get(sessions_per_era): T::BlockNumber;
 		/// Maximum reward, per validator, that is provided per acceptable session.
-		pub SessionReward get(session_reward): required Perbill;
+		pub SessionReward no_config get(session_reward): Perbill;
 		/// Slash, per validator that is taken for the first time they are found to be offline.
-		pub OfflineSlash get(offline_slash): required Perbill;
+		pub OfflineSlash no_config get(offline_slash): Perbill;
 		/// Number of instances of offline reports before slashing begins for validators.
-		pub OfflineSlashGrace get(offline_slash_grace): default u32;
+		pub OfflineSlashGrace no_config get(offline_slash_grace): u32;
 		/// The length of the bonding duration in blocks.
-		pub BondingDuration get(bonding_duration): required T::BlockNumber;
+		pub BondingDuration no_config get(bonding_duration): T::BlockNumber;
 
 		/// The current era index.
-		pub CurrentEra get(current_era): required T::BlockNumber;
+		pub CurrentEra no_config get(current_era): T::BlockNumber;
 		/// Preferences that a validator has.
-		pub ValidatorPreferences get(validator_preferences): default map [ T::AccountId => ValidatorPrefs<T::Balance> ];
+		pub ValidatorPreferences no_config get(validator_preferences): Map<T::AccountId, ValidatorPrefs<T::Balance>>;
 		/// All the accounts with a desire to stake.
-		pub Intentions get(intentions): default Vec<T::AccountId>;
+		pub Intentions no_config get(intentions): Vec<T::AccountId>;
 		/// All nominator -> nominee relationships.
-		pub Nominating get(nominating): map [ T::AccountId => T::AccountId ];
+		pub Nominating no_config get(nominating): Map<T::AccountId, Option<T::AccountId>>;
 		/// Nominators for a particular account.
-		pub NominatorsFor get(nominators_for): default map [ T::AccountId => Vec<T::AccountId> ];
+		pub NominatorsFor no_config get(nominators_for): Map<T::AccountId, Vec<T::AccountId>>;
 		/// Nominators for a particular account that is in action right now.
-		pub CurrentNominatorsFor get(current_nominators_for): default map [ T::AccountId => Vec<T::AccountId> ];
+		pub CurrentNominatorsFor no_config get(current_nominators_for): Map<T::AccountId, Vec<T::AccountId>>;
 
 		/// Maximum reward, per validator, that is provided per acceptable session.
-		pub CurrentSessionReward get(current_session_reward): default T::Balance;
+		pub CurrentSessionReward no_config get(current_session_reward): T::Balance;
 		/// Slash, per validator that is taken for the first time they are found to be offline.
-		pub CurrentOfflineSlash get(current_offline_slash): default T::Balance;
+		pub CurrentOfflineSlash no_config get(current_offline_slash): T::Balance;
 
 		/// The next value of sessions per era.
-		pub NextSessionsPerEra get(next_sessions_per_era): T::BlockNumber;
+		pub NextSessionsPerEra no_config get(next_sessions_per_era): Option<T::BlockNumber>;
 		/// The session index at which the era length last changed.
-		pub LastEraLengthChange get(last_era_length_change): default T::BlockNumber;
+		pub LastEraLengthChange no_config get(last_era_length_change): T::BlockNumber;
 
 		/// The highest and lowest staked validator slashable balances.
-		pub StakeRange get(stake_range): default PairOf<T::Balance>;
+		pub StakeRange no_config get(stake_range): PairOf<T::Balance>;
 
 		/// The block at which the `who`'s funds become entirely liquid.
-		pub Bondage get(bondage): default map [ T::AccountId => T::BlockNumber ];
+		pub Bondage no_config get(bondage): Map<T::AccountId, T::BlockNumber>;
 		/// The number of times a given validator has been reported offline. This gets decremented by one each era that passes.
-		pub SlashCount get(slash_count): default map [ T::AccountId => u32 ];
+		pub SlashCount no_config get(slash_count): Map<T::AccountId, u32>;
 
 		/// We are forcing a new era.
-		pub ForcingNewEra get(forcing_new_era): ();
+		pub ForcingNewEra no_config get(forcing_new_era): Option<()>;
 	}
 }
 

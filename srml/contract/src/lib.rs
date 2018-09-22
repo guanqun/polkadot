@@ -188,22 +188,22 @@ decl_event! {
 decl_storage! {
 	trait Store for Module<T: Trait> as Contract {
 		/// The fee required to create a contract. At least as big as staking's ReclaimRebate.
-		ContractFee get(contract_fee): required T::Balance;
+		ContractFee no_config get(contract_fee): T::Balance;
 		/// The fee charged for a call into a contract.
-		CallBaseFee get(call_base_fee): required T::Gas;
+		CallBaseFee no_config get(call_base_fee): T::Gas;
 		/// The fee charged for a create of a contract.
-		CreateBaseFee get(create_base_fee): required T::Gas;
+		CreateBaseFee no_config get(create_base_fee): T::Gas;
 		/// The price of one unit of gas.
-		GasPrice get(gas_price): required T::Balance;
+		GasPrice no_config get(gas_price): T::Balance;
 		/// The maximum nesting level of a call/create stack.
-		MaxDepth get(max_depth): required u32;
+		MaxDepth no_config get(max_depth): u32;
 		/// The maximum amount of gas that could be expended per block.
-		BlockGasLimit get(block_gas_limit): required T::Gas;
+		BlockGasLimit no_config get(block_gas_limit): T::Gas;
 		/// Gas spent so far in this block.
-		GasSpent get(gas_spent): default T::Gas;
+		GasSpent no_config get(gas_spent): T::Gas;
 
 		/// The code associated with an account.
-		pub CodeOf: default map [ T::AccountId => Vec<u8> ];	// TODO Vec<u8> values should be optimised to not do a length prefix.
+		pub CodeOf: Map<T::AccountId, Vec<u8>>;	// TODO Vec<u8> values should be optimised to not do a length prefix.
 	}
 }
 

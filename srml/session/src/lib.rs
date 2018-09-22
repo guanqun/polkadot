@@ -86,23 +86,23 @@ decl_storage! {
 	trait Store for Module<T: Trait> as Session {
 
 		/// The current set of validators.
-		pub Validators get(validators): required Vec<T::AccountId> : genesis = vec![];
+		pub Validators get(validators): Vec<T::AccountId>;
 		/// Current length of the session.
-		pub SessionLength get(session_length): required T::BlockNumber : genesis = T::BlockNumber::sa(1000);
+		pub SessionLength get(session_length): T::BlockNumber = T::BlockNumber::sa(1000);
 		/// Current index of the session.
-		pub CurrentIndex get(current_index): required T::BlockNumber;
+		pub CurrentIndex no_config get(current_index): T::BlockNumber;
 		/// Timestamp when current session started.
-		pub CurrentStart get(current_start): required T::Moment;
+		pub CurrentStart no_config get(current_start): T::Moment;
 
 		/// New session is being forced is this entry exists; in which case, the boolean value is whether
 		/// the new session should be considered a normal rotation (rewardable) or exceptional (slashable).
-		pub ForcingNewSession get(forcing_new_session): bool;
+		pub ForcingNewSession no_config get(forcing_new_session): Option<bool>;
 		/// Block at which the session length last changed.
-		LastLengthChange: T::BlockNumber;
+		LastLengthChange: Option<T::BlockNumber>;
 		/// The next key for a given validator.
-		NextKeyFor: map [ T::AccountId => T::SessionKey ];
+		NextKeyFor: Map<T::AccountId, Option<T::SessionKey>>;
 		/// The next session length.
-		NextSessionLength: T::BlockNumber;
+		NextSessionLength: Option<T::BlockNumber>;
 	}
 }
 

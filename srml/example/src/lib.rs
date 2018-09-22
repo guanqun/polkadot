@@ -159,10 +159,10 @@ decl_storage! {
 		//
 		// For the getter methods, unless you specify `no_config` in the declaration,
 		// this macro will automatically declare a GenesisConfig<T> for you.
-		Dummy get(dummy): T::Balance : genesis = Default::default();
+		Dummy get(dummy): Option<T::Balance>;
 
 		// this one uses the default, we'll demonstrate the usage of 'mutate' API.
-		Foo get(foo): default T::Balance : genesis = Default::default();
+		Foo get(foo): T::Balance;
 	}
 }
 
