@@ -66,6 +66,14 @@ pub trait Storage {
 	/// Load the bytes of a key from storage. Can panic if the type is incorrect.
 	fn get<T: codec::Codec>(&self, key: &[u8]) -> Option<T>;
 
+	/// Load the bytes of a key from storage. Can panic if the type is incorrect. Will panic if
+	/// it's not there.
+	fn require<T: codec::Codec>(&self, key: &[u8]) -> T { self.get(key).expect("Required values must be in storage") }
+
+	/// Load the bytes of a key from storage. Can panic if the type is incorrect. The type's
+	/// default is returned if it's not there.
+	fn get_or_default<T: codec::Codec + Default>(&self, key: &[u8]) -> T { self.get(key).unwrap_or_default() }
+
 	/// Put a value in under a key.
 	fn put<T: codec::Codec>(&self, key: &[u8], val: &T);
 
@@ -78,6 +86,12 @@ pub trait Storage {
 		self.kill(key);
 		value
 	}
+
+	/// Take a value from storage, deleting it after reading.
+	fn take_or_panic<T: codec::Codec>(&self, key: &[u8]) -> T { self.take(key).expect("Required values must be in storage") }
+
+	/// Take a value from storage, deleting it after reading.
+	fn take_or_default<T: codec::Codec + Default>(&self, key: &[u8]) -> T { self.take(key).unwrap_or_default() }
 }
 
 /// A strongly-typed value kept in storage.
