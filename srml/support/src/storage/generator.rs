@@ -528,16 +528,16 @@ macro_rules! decl_storage {
 		}
 	) => {
 		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
-//		trait $storetype {
-//			__decl_store_items!($($t)*);
-//		}
-//		impl<$traitinstance: $traittype> $storetype for $modulename<$traitinstance> {
-//			__impl_store_items!($traitinstance $($t)*);
-//		}
-//		impl<$traitinstance: $traittype> $modulename<$traitinstance> {
-//			__impl_store_fns!($traitinstance $($t)*);
-////			__impl_store_metadata!($cratename; $($t)*);
-//		}
+		trait $storetype {
+			__decl_store_items!($($t)*);
+		}
+		impl<$traitinstance: $traittype> $storetype for $modulename<$traitinstance> {
+			__impl_store_items!($traitinstance $($t)*);
+		}
+		impl<$traitinstance: $traittype> $modulename<$traitinstance> {
+			__impl_store_fns!($traitinstance $($t)*);
+//			__impl_store_metadata!($cratename; $($t)*);
+		}
 		//__decl_genesis_config_items!($traitinstance $traittype [] $($t)*);
 	};
 //	(
@@ -1146,12 +1146,20 @@ macro_rules! __impl_store_items {
 	//  - $default
 	// so there are 4 cases here.
 	($traitinstance:ident $(#[$doc:meta])* $name:ident : $ty:ty; $($t:tt)*) => {
+		__impl_store_item!($name $traitinstance);
+		__impl_store_items!($traitinstance $($t)*);
 	};
 	($traitinstance:ident $(#[$doc:meta])* $name:ident : $ty:ty = $default:expr; $($t:tt)*) => {
+		__impl_store_item!($name $traitinstance);
+		__impl_store_items!($traitinstance $($t)*);
 	};
 	($traitinstance:ident $(#[$doc:meta])* pub $name:ident : $ty:ty; $($t:tt)*) => {
+		__impl_store_item!($name $traitinstance);
+		__impl_store_items!($traitinstance $($t)*);
 	};
 	($traitinstance:ident $(#[$doc:meta])* pub $name:ident : $ty:ty = $default:expr; $($t:tt)*) => {
+		__impl_store_item!($name $traitinstance);
+		__impl_store_items!($traitinstance $($t)*);
 	};
 
 	// simple values with getters:
