@@ -161,7 +161,7 @@ decl_storage! {
 		/// All the accounts with a desire to stake.
 		pub Intentions no_config get(intentions): Vec<T::AccountId>;
 		/// All nominator -> nominee relationships.
-		pub Nominating no_config get(nominating): Map<T::AccountId, Option<T::AccountId>>;
+		pub Nominating no_config get(nominating): Map<T::AccountId, Option<T::AccountId> >;
 		/// Nominators for a particular account.
 		pub NominatorsFor no_config get(nominators_for): Map<T::AccountId, Vec<T::AccountId>>;
 		/// Nominators for a particular account that is in action right now.
