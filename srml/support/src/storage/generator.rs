@@ -1535,6 +1535,7 @@ mod tests {
 	decl_storage! {
 		trait Store for Module<T: Trait> as TestStorage {
 			// non-getters: pub / $default
+			/// Hello, this is doc!
 			U32 : Option<u32>;
 			pub PUBU32 : Option<u32>;
 			U32MYDEF : Option<u32> = None;
@@ -1579,97 +1580,148 @@ mod tests {
 		functions: DecodeDifferent::Encode(&[
 			StorageFunctionMetadata {
 				name: DecodeDifferent::Encode("U32"),
-				ty: StorageFunctionType::Plain(DecodeDifferent::Encode("u32")),
+				ty: StorageFunctionType::Plain(DecodeDifferent::Encode("Option<u32>")),
 				documentation: DecodeDifferent::Encode(&[ " Hello, this is doc!" ]),
 			},
+			StorageFunctionMetadata {
+				name: DecodeDifferent::Encode("PUBU32"),
+				ty: StorageFunctionType::Plain(DecodeDifferent::Encode("Option<u32>")),
+				documentation: DecodeDifferent::Encode(&[]),
+			},
+			StorageFunctionMetadata {
+				name: DecodeDifferent::Encode("U32MYDEF"),
+				ty: StorageFunctionType::Plain(DecodeDifferent::Encode("Option<u32>")),
+				documentation: DecodeDifferent::Encode(&[]),
+			},
+			StorageFunctionMetadata {
+				name: DecodeDifferent::Encode("PUBU32MYDEF"),
+				ty: StorageFunctionType::Plain(DecodeDifferent::Encode("Option<u32>")),
+				documentation: DecodeDifferent::Encode(&[]),
+			},
+
 			StorageFunctionMetadata {
 				name: DecodeDifferent::Encode("GETU32"),
 				ty: StorageFunctionType::Plain(DecodeDifferent::Encode("u32")),
 				documentation: DecodeDifferent::Encode(&[]),
 			},
 			StorageFunctionMetadata {
-				name: DecodeDifferent::Encode("PUBU32"),
+				name: DecodeDifferent::Encode("PUBGETU32"),
 				ty: StorageFunctionType::Plain(DecodeDifferent::Encode("u32")),
 				documentation: DecodeDifferent::Encode(&[]),
 			},
 			StorageFunctionMetadata {
-				name: DecodeDifferent::Encode("GETPUBU32"),
+				name: DecodeDifferent::Encode("GETU32NOCONFIG"),
 				ty: StorageFunctionType::Plain(DecodeDifferent::Encode("u32")),
 				documentation: DecodeDifferent::Encode(&[]),
 			},
 			StorageFunctionMetadata {
-				name: DecodeDifferent::Encode("U32Default"),
+				name: DecodeDifferent::Encode("PUBGETU32NOCONFIG"),
+				ty: StorageFunctionType::Plain(DecodeDifferent::Encode("u32")),
+				documentation: DecodeDifferent::Encode(&[]),
+			},
+
+			StorageFunctionMetadata {
+				name: DecodeDifferent::Encode("GETU32MYDEF"),
 				ty: StorageFunctionType::Plain(DecodeDifferent::Encode("u32")),
 				documentation: DecodeDifferent::Encode(&[]),
 			},
 			StorageFunctionMetadata {
-				name: DecodeDifferent::Encode("GETU32Default"),
+				name: DecodeDifferent::Encode("PUBGETU32MYDEF"),
 				ty: StorageFunctionType::Plain(DecodeDifferent::Encode("u32")),
 				documentation: DecodeDifferent::Encode(&[]),
 			},
 			StorageFunctionMetadata {
-				name: DecodeDifferent::Encode("PUBU32Default"),
+				name: DecodeDifferent::Encode("GETU32NOCONFIGMYDEF"),
 				ty: StorageFunctionType::Plain(DecodeDifferent::Encode("u32")),
 				documentation: DecodeDifferent::Encode(&[]),
 			},
 			StorageFunctionMetadata {
-				name: DecodeDifferent::Encode("GETPUBU32Default"),
+				name: DecodeDifferent::Encode("PUBGETU32NOCONFIGMYDEF"),
 				ty: StorageFunctionType::Plain(DecodeDifferent::Encode("u32")),
 				documentation: DecodeDifferent::Encode(&[]),
 			},
+
 			StorageFunctionMetadata {
 				name: DecodeDifferent::Encode("MAPU32"),
 				ty: StorageFunctionType::Map{
-					key: DecodeDifferent::Encode("u32"), value: DecodeDifferent::Encode("String")
+					key: DecodeDifferent::Encode("u32"), value: DecodeDifferent::Encode("Option<String>")
 				},
 				documentation: DecodeDifferent::Encode(&[]),
 			},
+			StorageFunctionMetadata {
+				name: DecodeDifferent::Encode("PUBMAPU32"),
+				ty: StorageFunctionType::Map{
+					key: DecodeDifferent::Encode("u32"), value: DecodeDifferent::Encode("Option<String>")
+				},
+				documentation: DecodeDifferent::Encode(&[]),
+			},
+			StorageFunctionMetadata {
+				name: DecodeDifferent::Encode("MAPU32MYDEF"),
+				ty: StorageFunctionType::Map{
+					key: DecodeDifferent::Encode("u32"), value: DecodeDifferent::Encode("Option<String>")
+				},
+				documentation: DecodeDifferent::Encode(&[]),
+			},
+			StorageFunctionMetadata {
+				name: DecodeDifferent::Encode("PUBMAPU32MYDEF"),
+				ty: StorageFunctionType::Map{
+					key: DecodeDifferent::Encode("u32"), value: DecodeDifferent::Encode("Option<String>")
+				},
+				documentation: DecodeDifferent::Encode(&[]),
+			},
+
 			StorageFunctionMetadata {
 				name: DecodeDifferent::Encode("GETMAPU32"),
 				ty: StorageFunctionType::Map{
 					key: DecodeDifferent::Encode("u32"), value: DecodeDifferent::Encode("String")
 				},
-				documentation: DecodeDifferent::Encode(&[
-					" Hello, this is doc!", " Hello, this is doc 2!"
-				]),
+				documentation: DecodeDifferent::Encode(&[]),
 			},
 			StorageFunctionMetadata {
-				name: DecodeDifferent::Encode("PUBMAPU32"),
+				name: DecodeDifferent::Encode("PUBGETMAPU32"),
 				ty: StorageFunctionType::Map{
 					key: DecodeDifferent::Encode("u32"), value: DecodeDifferent::Encode("String")
 				},
 				documentation: DecodeDifferent::Encode(&[]),
 			},
 			StorageFunctionMetadata {
-				name: DecodeDifferent::Encode("GETPUBMAPU32"),
+				name: DecodeDifferent::Encode("GETMAPU32NOCONFIG"),
 				ty: StorageFunctionType::Map{
 					key: DecodeDifferent::Encode("u32"), value: DecodeDifferent::Encode("String")
 				},
 				documentation: DecodeDifferent::Encode(&[]),
 			},
 			StorageFunctionMetadata {
-				name: DecodeDifferent::Encode("MAPU32Default"),
+				name: DecodeDifferent::Encode("PUBGETMAPU32NOCONFIG"),
+				ty: StorageFunctionType::Map{
+					key: DecodeDifferent::Encode("u32"), value: DecodeDifferent::Encode("String")
+				},
+				documentation: DecodeDifferent::Encode(&[]),
+			},
+
+			StorageFunctionMetadata {
+				name: DecodeDifferent::Encode("GETMAPU32MYDEF"),
 				ty: StorageFunctionType::Map{
 					key: DecodeDifferent::Encode("u32"), value: DecodeDifferent::Encode("String")
 				},
 				documentation: DecodeDifferent::Encode(&[]),
 			},
 			StorageFunctionMetadata {
-				name: DecodeDifferent::Encode("GETMAPU32Default"),
+				name: DecodeDifferent::Encode("PUBGETMAPU32MYDEF"),
 				ty: StorageFunctionType::Map{
 					key: DecodeDifferent::Encode("u32"), value: DecodeDifferent::Encode("String")
 				},
 				documentation: DecodeDifferent::Encode(&[]),
 			},
 			StorageFunctionMetadata {
-				name: DecodeDifferent::Encode("PUBMAPU32Default"),
+				name: DecodeDifferent::Encode("GETMAPU32NOCONFIGMYDEF"),
 				ty: StorageFunctionType::Map{
 					key: DecodeDifferent::Encode("u32"), value: DecodeDifferent::Encode("String")
 				},
 				documentation: DecodeDifferent::Encode(&[]),
 			},
 			StorageFunctionMetadata {
-				name: DecodeDifferent::Encode("GETPUBMAPU32Default"),
+				name: DecodeDifferent::Encode("PUBGETMAPU32NOCONFIGMYDEF"),
 				ty: StorageFunctionType::Map{
 					key: DecodeDifferent::Encode("u32"), value: DecodeDifferent::Encode("String")
 				},
