@@ -293,7 +293,7 @@ impl<T: Trait> runtime_primitives::BuildStorage for GenesisConfig<T>
 	fn build_storage(self) -> ::std::result::Result<runtime_primitives::StorageMap, String> {
 		use codec::Encode;
 		Ok(map![
-			Self::hash(<Dummy<T>>::key()).to_vec() => self.dummy.encode(),
+			Self::hash(<Dummy<T>>::key()).to_vec() => self.dummy.unwrap().encode(),
 			Self::hash(<Foo<T>>::key()).to_vec() => self.foo.encode()
 		])
 	}

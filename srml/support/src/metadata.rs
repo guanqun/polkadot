@@ -282,7 +282,7 @@ mod tests {
 					   functions: DecodeDifferent::Encode(&[
 						   StorageFunctionMetadata {
 							   name: DecodeDifferent::Encode("StorageMethod"),
-							   ty: StorageFunctionType::Plain(DecodeDifferent::Encode("u32")),
+							   ty: StorageFunctionType::Plain(DecodeDifferent::Encode("Option<u32>")),
 							   documentation: DecodeDifferent::Encode(&[]),
 						   }
 					   ])
