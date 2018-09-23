@@ -353,7 +353,7 @@ mod tests {
 		// We use default for brevity, but you can configure as desired if needed.
 		t.extend(balances::GenesisConfig::<Test>::default().build_storage().unwrap());
 		t.extend(GenesisConfig::<Test>{
-			dummy: 42,
+			dummy: Some(42),
 			foo: 24,
 		}.build_storage().unwrap());
 		t.into()
