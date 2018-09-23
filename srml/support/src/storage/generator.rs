@@ -961,13 +961,27 @@ macro_rules! __decl_storage_item {
 			/// Load the value associated with the given key from the map.
 			fn get<S: $crate::GenericStorage>(key: &$kty, storage: &S) -> Self::Query {
 				let key = <$name<$traitinstance> as $crate::storage::generator::StorageMap<$kty, $ty>>::key_for(key);
-				storage.get(&key[..]).unwrap_or_else(|| $default)
+
+				__handle_wrap_internal!($wraptype {
+					// raw type case
+					storage.get(&key[..]).unwrap_or_else(|| $default)
+				} {
+					// Option<> type case
+					storage.get(&key[..]).or_else(|| $default)
+				})
 			}
 
 			/// Take the value, reading and removing it.
 			fn take<S: $crate::GenericStorage>(key: &$kty, storage: &S) -> Self::Query {
 				let key = <$name<$traitinstance> as $crate::storage::generator::StorageMap<$kty, $ty>>::key_for(key);
-				storage.take(&key[..]).unwrap_or_else(|| $default)
+
+				__handle_wrap_internal!($wraptype {
+					// raw type case
+					storage.take(&key[..]).unwrap_or_else(|| $default)
+				} {
+					// Option<> type case
+					storage.take(&key[..]).or_else(|| $default)
+				})
 			}
 
 			/// Mutate the value under a key
@@ -1003,14 +1017,30 @@ macro_rules! __decl_storage_item {
 
 			/// Load the value from the provided storage instance.
 			fn get<S: $crate::GenericStorage>(storage: &S) -> Self::Query {
-				storage.get(<$name<$traitinstance> as $crate::storage::generator::StorageValue<$ty>>::key())
-					.unwrap_or_else(|| $default)
+
+				__handle_wrap_internal!($wraptype {
+					// raw type case
+					storage.get(<$name<$traitinstance> as $crate::storage::generator::StorageValue<$ty>>::key())
+						.unwrap_or_else(|| $default)
+				} {
+					// Option<> type case
+					storage.get(<$name<$traitinstance> as $crate::storage::generator::StorageValue<$ty>>::key())
+						.or_else(|| $default)
+				})
 			}
 
 			/// Take a value from storage, removing it afterwards.
 			fn take<S: $crate::GenericStorage>(storage: &S) -> Self::Query {
-				storage.take(<$name<$traitinstance> as $crate::storage::generator::StorageValue<$ty>>::key())
-					.unwrap_or_else(|| $default)
+				__handle_wrap_internal!($wraptype {
+					// raw type case
+					storage.take(<$name<$traitinstance> as $crate::storage::generator::StorageValue<$ty>>::key())
+						.unwrap_or_else(|| $default)
+				} {
+					// Option<> type case
+					storage.take(<$name<$traitinstance> as $crate::storage::generator::StorageValue<$ty>>::key())
+						.or_else(|| $default)
+				})
+
 			}
 
 			/// Mutate the value under a key.
