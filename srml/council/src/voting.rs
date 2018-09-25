@@ -46,10 +46,10 @@ decl_storage! {
 		pub CooloffPeriod no_config get(cooloff_period): T::BlockNumber;
 		pub VotingPeriod no_config get(voting_period): T::BlockNumber;
 		pub Proposals no_config get(proposals): Vec<(T::BlockNumber, T::Hash)>; // ordered by expiry.
-		pub ProposalOf no_config get(proposal_of): Map<T::Hash, Option<T::Proposal> >;
-		pub ProposalVoters no_config get(proposal_voters): Map<T::Hash, Vec<T::AccountId>>;
-		pub CouncilVoteOf no_config get(vote_of): Map<(T::Hash, T::AccountId), Option<bool> >;
-		pub VetoedProposal no_config get(veto_of): Map<T::Hash, Option<(T::BlockNumber, Vec<T::AccountId>)> >;
+		pub ProposalOf get(proposal_of): Map<T::Hash, Option<T::Proposal> >;
+		pub ProposalVoters get(proposal_voters): Map<T::Hash, Vec<T::AccountId>>;
+		pub CouncilVoteOf get(vote_of): Map<(T::Hash, T::AccountId), Option<bool> >;
+		pub VetoedProposal get(veto_of): Map<T::Hash, Option<(T::BlockNumber, Vec<T::AccountId>)> >;
 	}
 }
 

@@ -132,12 +132,12 @@ decl_storage! {
 
 		// persistent state (always relevant, changes constantly)
 		/// The last cleared vote index that this voter was last active at.
-		pub ApprovalsOf no_config get(approvals_of): Map<T::AccountId, Vec<bool>>;
+		pub ApprovalsOf get(approvals_of): Map<T::AccountId, Vec<bool>>;
 		/// The vote index and list slot that the candidate `who` was registered or `None` if they are not
 		/// currently registered.
-		pub RegisterInfoOf no_config get(candidate_reg_info): Map<T::AccountId, Option<(VoteIndex, u32)> >;
+		pub RegisterInfoOf get(candidate_reg_info): Map<T::AccountId, Option<(VoteIndex, u32)> >;
 		/// The last cleared vote index that this voter was last active at.
-		pub LastActiveOf no_config get(voter_last_active): Map<T::AccountId, Option<VoteIndex> >;
+		pub LastActiveOf get(voter_last_active): Map<T::AccountId, Option<VoteIndex> >;
 		/// The present voter list.
 		pub Voters no_config get(voters): Vec<T::AccountId>;
 		/// The present candidate list.

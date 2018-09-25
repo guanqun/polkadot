@@ -166,7 +166,7 @@ decl_storage! {
 		/// The next free enumeration set.
 		pub NextEnumSet no_config get(next_enum_set): T::AccountIndex;
 		/// The enumeration sets.
-		pub EnumSet no_config get(enum_set): Map<T::AccountIndex, Vec<T::AccountId>>;
+		pub EnumSet get(enum_set): Map<T::AccountIndex, Vec<T::AccountId>>;
 
 		/// The 'free' balance of a given account.
 		///
@@ -179,7 +179,7 @@ decl_storage! {
 		///
 		/// `system::AccountNonce` is also deleted if `ReservedBalance` is also zero (it also gets
 		/// collapsed to zero if it ever becomes less than `ExistentialDeposit`.
-		pub FreeBalance no_config get(free_balance): Map<T::AccountId, T::Balance>;
+		pub FreeBalance get(free_balance): Map<T::AccountId, T::Balance>;
 
 		/// The amount of the balance of a given account that is externally reserved; this can still get
 		/// slashed, but gets slashed last of all.
@@ -193,7 +193,7 @@ decl_storage! {
 		///
 		/// `system::AccountNonce` is also deleted if `FreeBalance` is also zero (it also gets
 		/// collapsed to zero if it ever becomes less than `ExistentialDeposit`.
-		pub ReservedBalance no_config get(reserved_balance): Map<T::AccountId, T::Balance>;
+		pub ReservedBalance get(reserved_balance): Map<T::AccountId, T::Balance>;
 
 
 		// Payment stuff.

@@ -78,7 +78,7 @@ decl_storage! {
 		/// The public proposals. Unsorted.
 		pub PublicProps no_config get(public_props): Vec<(PropIndex, T::Proposal, T::AccountId)>;
 		/// Those who have locked a deposit.
-		pub DepositOf no_config get(deposit_of): Map<PropIndex, Option<(T::Balance, Vec<T::AccountId>)> >;
+		pub DepositOf get(deposit_of): Map<PropIndex, Option<(T::Balance, Vec<T::AccountId>)> >;
 		/// How often (in blocks) new public referenda are launched.
 		pub LaunchPeriod no_config get(launch_period): T::BlockNumber;
 		/// The minimum amount to be used as a deposit for a public referendum proposal.
@@ -92,13 +92,13 @@ decl_storage! {
 		/// The next referendum index that should be tallied.
 		pub NextTally no_config get(next_tally): ReferendumIndex;
 		/// Information concerning any given referendum.
-		pub ReferendumInfoOf no_config get(referendum_info): Map<ReferendumIndex, Option<(T::BlockNumber, T::Proposal, VoteThreshold)> >;
+		pub ReferendumInfoOf get(referendum_info): Map<ReferendumIndex, Option<(T::BlockNumber, T::Proposal, VoteThreshold)> >;
 
 		/// Get the voters for the current proposal.
-		pub VotersFor no_config get(voters_for): Map<ReferendumIndex, Vec<T::AccountId>>;
+		pub VotersFor get(voters_for): Map<ReferendumIndex, Vec<T::AccountId>>;
 
 		/// Get the vote, if Some, of `who`.
-		pub VoteOf no_config get(vote_of): Map<(ReferendumIndex, T::AccountId), Option<bool> >;
+		pub VoteOf get(vote_of): Map<(ReferendumIndex, T::AccountId), Option<bool> >;
 	}
 }
 

@@ -127,7 +127,7 @@ decl_storage! {
 		ProposalCount no_config get(proposal_count): ProposalIndex;
 
 		/// Proposals that have been made.
-		Proposals no_config get(proposals): Map<ProposalIndex, Option<Proposal<T::AccountId, T::Balance>>>;
+		Proposals get(proposals): Map<ProposalIndex, Option<Proposal<T::AccountId, T::Balance>>>;
 
 		/// Proposal indices that have been approved but not yet awarded.
 		Approvals no_config get(approvals): Vec<ProposalIndex>;
