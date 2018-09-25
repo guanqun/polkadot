@@ -611,25 +611,25 @@ macro_rules! __decl_genesis_config_items {
 	// so there are 8 cases here.
 	// we only need to add 'compile_error' once.
 	($traittype:ident $traitinstance:ident [$($cur:tt)*] $(#[$doc:meta])* $name:ident get($getfn:ident) : Map<$kty:ty, $ty:ty>; $($t:tt)*) => {
-		__decl_genesis_config_items!($traittype $traitinstance [$($cur)* $getfn : Vec<($kty, $ty)> = Default::default(); ] $($t)* );
+		__decl_genesis_config_items!($traittype $traitinstance [$($cur)*] $($t)* );
 	};
 	($traittype:ident $traitinstance:ident [$($cur:tt)*] $(#[$doc:meta])* $name:ident no_config get($getfn:ident) : Map<$kty:ty, $ty:ty>; $($t:tt)*) => {
 		compile_error!("Map fields would never go to genesis config, so 'no_config' is not allowed.");
 	};
 	($traittype:ident $traitinstance:ident [$($cur:tt)*] $(#[$doc:meta])* $name:ident get($getfn:ident) : Map<$kty:ty, $ty:ty> = $default:expr; $($t:tt)*) => {
-		__decl_genesis_config_items!($traittype $traitinstance [$($cur)* $getfn : Vec<($kty, $ty)> = Default::default(); ] $($t)* );
+		__decl_genesis_config_items!($traittype $traitinstance [$($cur)*] $($t)* );
 	};
 	($traittype:ident $traitinstance:ident [$($cur:tt)*] $(#[$doc:meta])* $name:ident no_config get($getfn:ident) : Map<$kty:ty, $ty:ty> = $default:expr; $($t:tt)*) => {
 		compile_error!("Map fields would never go to genesis config, so 'no_config' is not allowed.");
 	};
 	($traittype:ident $traitinstance:ident [$($cur:tt)*] $(#[$doc:meta])* pub $name:ident get($getfn:ident) : Map<$kty:ty, $ty:ty>; $($t:tt)*) => {
-		__decl_genesis_config_items!($traittype $traitinstance [$($cur)* $getfn : Vec<($kty, $ty)> = Default::default(); ] $($t)* );
+		__decl_genesis_config_items!($traittype $traitinstance [$($cur)*] $($t)* );
 	};
 	($traittype:ident $traitinstance:ident [$($cur:tt)*] $(#[$doc:meta])* pub $name:ident no_config get($getfn:ident) : Map<$kty:ty, $ty:ty>; $($t:tt)*) => {
 		compile_error!("Map fields would never go to genesis config, so 'no_config' is not allowed.");
 	};
 	($traittype:ident $traitinstance:ident [$($cur:tt)*] $(#[$doc:meta])* pub $name:ident get($getfn:ident) : Map<$kty:ty, $ty:ty> = $default:expr; $($t:tt)*) => {
-		__decl_genesis_config_items!($traittype $traitinstance [$($cur)* $getfn : Vec<($kty, $ty)> = Default::default(); ] $($t)* );
+		__decl_genesis_config_items!($traittype $traitinstance [$($cur)*] $($t)* );
 	};
 	($traittype:ident $traitinstance:ident [$($cur:tt)*] $(#[$doc:meta])* pub $name:ident no_config get($getfn:ident) : Map<$kty:ty, $ty:ty> = $default:expr; $($t:tt)*) => {
 		compile_error!("Map fields would never go to genesis config, so 'no_config' is not allowed.");
