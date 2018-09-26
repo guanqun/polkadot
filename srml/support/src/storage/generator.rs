@@ -55,7 +55,7 @@ pub use rstd::marker::PhantomData;
 
 pub use substrate_metadata::{
 	DecodeDifferent, StorageMetadata, StorageFunctionMetadata,
-	StorageFunctionType
+	StorageFunctionModifier, StorageFunctionType
 };
 
 /// Abstraction around storage.
@@ -2006,7 +2006,7 @@ mod tests {
 	}
 
 	decl_storage! {
-		trait Store for Module<T: Trait> as TestStorage {
+		trait Store for Module<T: Trait>, GenesisConfig<T> as TestStorage {
 			// non-getters: pub / $default
 
 			/// Hello, this is doc!
@@ -2021,17 +2021,17 @@ mod tests {
 			pub PUBGETU32 get(pub_u32_getter): u32;
 			GETU32NOCONFIG no_config get(u32_getter_no_config): u32;
 			pub PUBGETU32NOCONFIG no_config get(pub_u32_getter_no_config): u32;
-			GETU32MYDEF get(u32_getter_mydef): u32 = 4;
+			GETU32MYDEF get(u32_getter_mydef): Option<u32> = Some(4);
 			pub PUBGETU32MYDEF get(pub_u32_getter_mydef): u32 = 3;
 			GETU32NOCONFIGMYDEF no_config get(u32_getter_no_config_mydef): u32 = 2;
 			pub PUBGETU32NOCONFIGMYDEF no_config get(pub_u32_getter_no_config_mydef): u32 = 1;
 			PUBGETU32NOCONFIGMYDEFOPT no_config get(pub_u32_getter_no_config_mydef_opt): Option<u32> = Some(100);
 
 			// map non-getters: pub / $default
-			MAPU32 : Map<u32, Option<String>>;
-			pub PUBMAPU32 : Map<u32, Option<String>>;
-			MAPU32MYDEF : Map<u32, Option<String>> = None;
-			pub PUBMAPU32MYDEF : Map<u32, Option<String>> = Some("hello".into());
+			MAPU32 : Map<u32, Option<String> >;
+			pub PUBMAPU32 : Map<u32, Option<String> >;
+			MAPU32MYDEF : Map<u32, Option<String> > = None;
+			pub PUBMAPU32MYDEF : Map<u32, Option<String> > = Some("hello".into());
 
 			// map getters: pub / no_config / $default
 			GETMAPU32 get(map_u32_getter): Map<u32, String>;
