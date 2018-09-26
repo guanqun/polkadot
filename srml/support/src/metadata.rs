@@ -99,7 +99,7 @@ mod tests {
 	use super::*;
 	use substrate_metadata::{
 		EventMetadata, OuterEventMetadata, RuntimeModuleMetadata, CallMetadata, ModuleMetadata,
-		StorageFunctionType, FunctionMetadata, FunctionArgumentMetadata,
+		StorageFunctionModifier, StorageFunctionType, FunctionMetadata, FunctionArgumentMetadata,
 		StorageMetadata, StorageFunctionMetadata,
 	};
 	use codec::{Decode, Encode};
@@ -282,7 +282,8 @@ mod tests {
 					   functions: DecodeDifferent::Encode(&[
 						   StorageFunctionMetadata {
 							   name: DecodeDifferent::Encode("StorageMethod"),
-							   ty: StorageFunctionType::Plain(DecodeDifferent::Encode("Option<u32>")),
+							   modifier: StorageFunctionModifier::Optional,
+							   ty: StorageFunctionType::Plain(DecodeDifferent::Encode("u32")),
 							   documentation: DecodeDifferent::Encode(&[]),
 						   }
 					   ])
