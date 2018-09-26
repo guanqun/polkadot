@@ -755,7 +755,7 @@ macro_rules! __decl_genesis_config_items {
 		__decl_genesis_config_items!([$($leading)*] [$($cur)*] $($t)* );
 	};
 	([$($leading:ident)*] [$($cur:tt)*] $(#[$doc:meta])* $name:ident get($getfn:ident) : Option<$ty:ty> = $default:expr; $($t:tt)*) => {
-		__decl_genesis_config_items!([$($leading)*] [$($cur)* $getfn : $ty = $default; ] $($t)* );
+		__decl_genesis_config_items!([$($leading)*] [$($cur)* $getfn : $ty = $default.unwrap_or_default(); ] $($t)* );
 	};
 	([$($leading:ident)*] [$($cur:tt)*] $(#[$doc:meta])* $name:ident no_config get($getfn:ident) : Option<$ty:ty> = $default:expr; $($t:tt)*) => {
 		__decl_genesis_config_items!([$($leading)*] [$($cur)*] $($t)* );
@@ -767,7 +767,7 @@ macro_rules! __decl_genesis_config_items {
 		__decl_genesis_config_items!([$($leading)*] [$($cur)*] $($t)* );
 	};
 	([$($leading:ident)*] [$($cur:tt)*] $(#[$doc:meta])* pub $name:ident get($getfn:ident) : Option<$ty:ty> = $default:expr; $($t:tt)*) => {
-		__decl_genesis_config_items!([$($leading)*] [$($cur)* $getfn : $ty = $default; ] $($t)* );
+		__decl_genesis_config_items!([$($leading)*] [$($cur)* $getfn : $ty = $default.unwrap_or_default(); ] $($t)* );
 	};
 	([$($leading:ident)*] [$($cur:tt)*] $(#[$doc:meta])* pub $name:ident no_config get($getfn:ident) : Option<$ty:ty> = $default:expr; $($t:tt)*) => {
 		__decl_genesis_config_items!([$($leading)*] [$($cur)*] $($t)* );
