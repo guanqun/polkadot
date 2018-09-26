@@ -102,7 +102,7 @@ pub struct Proposal<AccountId, Balance> {
 }
 
 decl_storage! {
-	trait Store for Module<T: Trait> as Treasury {
+	trait Store for Module<T: Trait>, GenesisConfig<T> as Treasury {
 		// Config...
 
 		/// Proportion of funds that should be bonded in order to place a proposal. An accepted

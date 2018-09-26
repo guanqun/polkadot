@@ -83,7 +83,7 @@ decl_event!(
 );
 
 decl_storage! {
-	trait Store for Module<T: Trait> as Session {
+	trait Store for Module<T: Trait>, GenesisConfig<T> as Session {
 
 		/// The current set of validators.
 		pub Validators get(validators): Vec<T::AccountId>;
