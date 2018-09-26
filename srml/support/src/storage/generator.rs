@@ -657,6 +657,32 @@ macro_rules! __decl_genesis_config_items {
 	//  - no_config
 	//  - $default
 	// so there are 8 cases here.
+	// Option<> types
+	($traittype:ident $traitinstance:ident [$($cur:tt)*] $(#[$doc:meta])* $name:ident get($getfn:ident) : Option<$ty:ty>; $($t:tt)*) => {
+		__decl_genesis_config_items!($traittype $traitinstance [$($cur)* $getfn : $ty = Default::default(); ] $($t)* );
+	};
+	($traittype:ident $traitinstance:ident [$($cur:tt)*] $(#[$doc:meta])* $name:ident no_config get($getfn:ident) : Option<$ty:ty>; $($t:tt)*) => {
+		__decl_genesis_config_items!($traittype $traitinstance [$($cur)*] $($t)* );
+	};
+	($traittype:ident $traitinstance:ident [$($cur:tt)*] $(#[$doc:meta])* $name:ident get($getfn:ident) : Option<$ty:ty> = $default:expr; $($t:tt)*) => {
+		__decl_genesis_config_items!($traittype $traitinstance [$($cur)* $getfn : $ty = $default; ] $($t)* );
+	};
+	($traittype:ident $traitinstance:ident [$($cur:tt)*] $(#[$doc:meta])* $name:ident no_config get($getfn:ident) : Option<$ty:ty> = $default:expr; $($t:tt)*) => {
+		__decl_genesis_config_items!($traittype $traitinstance [$($cur)*] $($t)* );
+	};
+	($traittype:ident $traitinstance:ident [$($cur:tt)*] $(#[$doc:meta])* pub $name:ident get($getfn:ident) : Option<$ty:ty>; $($t:tt)*) => {
+		__decl_genesis_config_items!($traittype $traitinstance [$($cur)* $getfn : $ty = Default::default(); ] $($t)* );
+	};
+	($traittype:ident $traitinstance:ident [$($cur:tt)*] $(#[$doc:meta])* pub $name:ident no_config get($getfn:ident) : Option<$ty:ty>; $($t:tt)*) => {
+		__decl_genesis_config_items!($traittype $traitinstance [$($cur)*] $($t)* );
+	};
+	($traittype:ident $traitinstance:ident [$($cur:tt)*] $(#[$doc:meta])* pub $name:ident get($getfn:ident) : Option<$ty:ty> = $default:expr; $($t:tt)*) => {
+		__decl_genesis_config_items!($traittype $traitinstance [$($cur)* $getfn : $ty = $default; ] $($t)* );
+	};
+	($traittype:ident $traitinstance:ident [$($cur:tt)*] $(#[$doc:meta])* pub $name:ident no_config get($getfn:ident) : Option<$ty:ty> = $default:expr; $($t:tt)*) => {
+		__decl_genesis_config_items!($traittype $traitinstance [$($cur)*] $($t)* );
+	};
+	// raw types
 	($traittype:ident $traitinstance:ident [$($cur:tt)*] $(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty; $($t:tt)*) => {
 		__decl_genesis_config_items!($traittype $traitinstance [$($cur)* $getfn : $ty = Default::default(); ] $($t)* );
 	};
