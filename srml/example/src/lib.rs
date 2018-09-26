@@ -132,7 +132,7 @@ decl_storage! {
 	// A macro for the Storage trait, and its implementation, for this module.
 	// This allows for type-safe usage of the Substrate storage database, so you can
 	// keep things around between blocks.
-	trait Store for Module<T: Trait> as Example {
+	trait Store for Module<T: Trait>, GenesisConfig<T> as Example {
 		// Any storage declarations of the form:
 		//   `pub? Name no_config? get(getter_name)? : <type> (= <new_default_value>)?;`
 		// where `<type>` is either:
@@ -293,7 +293,7 @@ impl<T: Trait> runtime_primitives::BuildStorage for GenesisConfig<T>
 	fn build_storage(self) -> ::std::result::Result<runtime_primitives::StorageMap, String> {
 		use codec::Encode;
 		Ok(map![
-			Self::hash(<Dummy<T>>::key()).to_vec() => self.dummy.unwrap().encode(),
+			Self::hash(<Dummy<T>>::key()).to_vec() => self.dummy.encode(),
 			Self::hash(<Foo<T>>::key()).to_vec() => self.foo.encode()
 		])
 	}
@@ -353,7 +353,7 @@ mod tests {
 		// We use default for brevity, but you can configure as desired if needed.
 		t.extend(balances::GenesisConfig::<Test>::default().build_storage().unwrap());
 		t.extend(GenesisConfig::<Test>{
-			dummy: Some(42),
+			dummy: 42,
 			foo: 24,
 		}.build_storage().unwrap());
 		t.into()
