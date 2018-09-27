@@ -155,13 +155,13 @@ decl_storage! {
 		/// The total amount of stake on the system.
 		pub TotalIssuance no_config get(total_issuance): T::Balance;
 		/// The minimum amount allowed to keep an account open.
-		pub ExistentialDeposit no_config get(existential_deposit): T::Balance;
+		pub ExistentialDeposit get(existential_deposit): T::Balance;
 		/// The amount credited to a destination's account whose index was reclaimed.
-		pub ReclaimRebate no_config get(reclaim_rebate): T::Balance;
+		pub ReclaimRebate get(reclaim_rebate): T::Balance;
 		/// The fee required to make a transfer.
-		pub TransferFee no_config get(transfer_fee): T::Balance;
+		pub TransferFee get(transfer_fee): T::Balance;
 		/// The fee required to create an account. At least as big as ReclaimRebate.
-		pub CreationFee no_config get(creation_fee): T::Balance;
+		pub CreationFee get(creation_fee): T::Balance;
 
 		/// The next free enumeration set.
 		pub NextEnumSet no_config get(next_enum_set): T::AccountIndex;
@@ -199,9 +199,9 @@ decl_storage! {
 		// Payment stuff.
 
 		/// The fee to be paid for making a transaction; the base.
-		pub TransactionBaseFee no_config get(transaction_base_fee): T::Balance;
+		pub TransactionBaseFee get(transaction_base_fee): T::Balance;
 		/// The fee to be paid for making a transaction; the per-byte portion.
-		pub TransactionByteFee no_config get(transaction_byte_fee): T::Balance;
+		pub TransactionByteFee get(transaction_byte_fee): T::Balance;
 	}
 }
 
