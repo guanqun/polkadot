@@ -71,7 +71,7 @@ decl_module! {
 }
 
 decl_storage! {
-	trait Store for Module<T: Trait> as Democracy {
+	trait Store for Module<T: Trait>, GenesisConfig<T> as Democracy {
 
 		/// The number of (public) proposals that have been made so far.
 		pub PublicPropCount no_config get(public_prop_count): PropIndex;
@@ -80,12 +80,12 @@ decl_storage! {
 		/// Those who have locked a deposit.
 		pub DepositOf get(deposit_of): map PropIndex => Option<(T::Balance, Vec<T::AccountId>)>;
 		/// How often (in blocks) new public referenda are launched.
-		pub LaunchPeriod no_config get(launch_period): T::BlockNumber;
+		pub LaunchPeriod get(launch_period): T::BlockNumber = T::BlockNumber::sa(1000);
 		/// The minimum amount to be used as a deposit for a public referendum proposal.
-		pub MinimumDeposit no_config get(minimum_deposit): T::Balance;
+		pub MinimumDeposit get(minimum_deposit): T::Balance;
 
 		/// How often (in blocks) to check for new votes.
-		pub VotingPeriod no_config get(voting_period): T::BlockNumber;
+		pub VotingPeriod get(voting_period): T::BlockNumber = T::BlockNumber::sa(1000);
 
 		/// The next free referendum index, aka the number of referendums started so far.
 		pub ReferendumCount no_config get(referendum_count): ReferendumIndex;
@@ -312,33 +312,12 @@ impl<T: Trait> OnFinalise<T::BlockNumber> for Module<T> {
 }
 
 #[cfg(any(feature = "std", test))]
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-#[serde(deny_unknown_fields)]
-pub struct GenesisConfig<T: Trait> {
-	pub launch_period: T::BlockNumber,
-	pub voting_period: T::BlockNumber,
-	pub minimum_deposit: T::Balance,
-}
-
-#[cfg(any(feature = "std", test))]
 impl<T: Trait> GenesisConfig<T> {
 	pub fn new() -> Self {
 		GenesisConfig {
 			launch_period: T::BlockNumber::sa(1),
 			voting_period: T::BlockNumber::sa(1),
 			minimum_deposit: T::Balance::sa(1),
-		}
-	}
-}
-
-#[cfg(any(feature = "std", test))]
-impl<T: Trait> Default for GenesisConfig<T> {
-	fn default() -> Self {
-		GenesisConfig {
-			launch_period: T::BlockNumber::sa(1000),
-			voting_period: T::BlockNumber::sa(1000),
-			minimum_deposit: T::Balance::sa(0),
 		}
 	}
 }
