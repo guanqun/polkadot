@@ -148,7 +148,7 @@ decl_storage! {
 		/// Maximum reward, per validator, that is provided per acceptable session.
 		pub SessionReward get(session_reward): Perbill = Perbill::from_billionths(60);
 		/// Slash, per validator that is taken for the first time they are found to be offline.
-		pub OfflineSlash get(offline_slash): Perbill = Perbill::from_fraction(0.001);
+		pub OfflineSlash get(offline_slash): Perbill = Perbill::from_millionths(1000); // Perbill::from_fraction() is only for std, so use from_millionths().
 		/// Number of instances of offline reports before slashing begins for validators.
 		pub OfflineSlashGrace get(offline_slash_grace): u32;
 		/// The length of the bonding duration in blocks.

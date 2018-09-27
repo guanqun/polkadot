@@ -103,7 +103,6 @@ use double_map::StorageDoubleMap;
 use rstd::prelude::*;
 use rstd::marker::PhantomData;
 use codec::Codec;
-use runtime_io::twox_128;
 use runtime_primitives::traits::{Hash, As, SimpleArithmetic, OnFinalise};
 use runtime_support::dispatch::Result;
 use runtime_support::{Parameter, StorageMap, StorageValue};
@@ -204,8 +203,11 @@ decl_storage! {
 	}
 }
 
+#[cfg(feature = "std")]
 impl<T: Trait> runtime_primitives::BuildStorage for GenesisConfig<T> {
 	fn build_storage(self) -> ::std::result::Result<runtime_primitives::StorageMap, String> {
+		use runtime_io::twox_128;
+		use codec::Encode;
 		Ok(map![
 			twox_128(<ContractFee<T>>::key()).to_vec() => self.contract_fee.encode(),
 			twox_128(<CallBaseFee<T>>::key()).to_vec() => self.call_base_fee.encode(),
