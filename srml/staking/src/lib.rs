@@ -62,12 +62,8 @@ use system::ensure_signed;
 mod mock;
 
 mod tests;
-mod genesis_config;
 
-#[cfg(feature = "std")]
-pub use genesis_config::GenesisConfig;
-
-const DEFAULT_MINIMUM_VALIDATOR_COUNT: usize = 4;
+const DEFAULT_MINIMUM_VALIDATOR_COUNT: u32 = 4;
 
 #[derive(PartialEq, Clone)]
 #[cfg_attr(test, derive(Debug))]
@@ -137,12 +133,12 @@ decl_event!(
 pub type PairOf<T> = (T, T);
 
 decl_storage! {
-	trait Store for Module<T: Trait> as Staking {
+	trait Store for Module<T: Trait>, GenesisConfig<T> as Staking {
 
 		/// The ideal number of staking participants.
 		pub ValidatorCount get(validator_count): u32;
 		/// Minimum number of staking participants before emergency conditions are imposed.
-		pub MinimumValidatorCount: Option<u32>;
+		pub MinimumValidatorCount get(minimum_validator_count): u32 = DEFAULT_MINIMUM_VALIDATOR_COUNT;
 		/// The length of a staking era in sessions.
 		pub SessionsPerEra get(sessions_per_era): T::BlockNumber = T::BlockNumber::sa(1000);
 		/// Maximum reward, per validator, that is provided per acceptable session.
@@ -190,6 +186,26 @@ decl_storage! {
 	}
 }
 
+#[cfg(feature = "std")]
+impl<T: Trait> primitives::BuildStorage for GenesisConfig<T> {
+	fn build_storage(self) -> ::std::result::Result<primitives::StorageMap, String> {
+		use codec::Encode;
+		Ok(map![
+			Self::hash(<Intentions<T>>::key()).to_vec() => self.intentions.encode(),
+			Self::hash(<SessionsPerEra<T>>::key()).to_vec() => self.sessions_per_era.encode(),
+			Self::hash(<ValidatorCount<T>>::key()).to_vec() => self.validator_count.encode(),
+			Self::hash(<MinimumValidatorCount<T>>::key()).to_vec() => self.minimum_validator_count.encode(),
+			Self::hash(<BondingDuration<T>>::key()).to_vec() => self.bonding_duration.encode(),
+			Self::hash(<CurrentEra<T>>::key()).to_vec() => self.current_era.encode(),
+			Self::hash(<SessionReward<T>>::key()).to_vec() => self.session_reward.encode(),
+			Self::hash(<OfflineSlash<T>>::key()).to_vec() => self.offline_slash.encode(),
+			Self::hash(<CurrentSessionReward<T>>::key()).to_vec() => self.current_session_reward.encode(),
+			Self::hash(<CurrentOfflineSlash<T>>::key()).to_vec() => self.current_offline_slash.encode(),
+			Self::hash(<OfflineSlashGrace<T>>::key()).to_vec() => self.offline_slash_grace.encode()
+		])
+	}
+}
+
 impl<T: Trait> Module<T> {
 
 	/// Deposit one of this module's events.
@@ -198,11 +214,6 @@ impl<T: Trait> Module<T> {
 	}
 
 	// PUBLIC IMMUTABLES
-
-	/// MinimumValidatorCount getter, introduces a default.
-	pub fn minimum_validator_count() -> usize {
-		<MinimumValidatorCount<T>>::get().map(|v| v as usize).unwrap_or(DEFAULT_MINIMUM_VALIDATOR_COUNT)
-	}
 
 	/// The length of a staking era in blocks.
 	pub fn era_length() -> T::BlockNumber {
@@ -256,7 +267,7 @@ impl<T: Trait> Module<T> {
 	fn unstake(origin: T::Origin, intentions_index: u32) -> Result {
 		let who = ensure_signed(origin)?;
 		// unstake fails in degenerate case of having too few existing staked parties
-		if Self::intentions().len() <= Self::minimum_validator_count() {
+		if Self::intentions().len() <= Self::minimum_validator_count() as usize {
 			return Err("cannot unstake when there are too few staked participants")
 		}
 		Self::apply_unstake(&who, intentions_index as usize)
@@ -375,7 +386,7 @@ impl<T: Trait> Module<T> {
 	fn slash_validator(v: &T::AccountId, slash: T::Balance) {
 		// skip the slash in degenerate case of having only 4 staking participants despite having a larger
 		// desired number of validators (validator_count).
-		if Self::intentions().len() <= Self::minimum_validator_count() {
+		if Self::intentions().len() <= Self::minimum_validator_count() as usize {
 			return
 		}
 
@@ -490,7 +501,7 @@ impl<T: Trait> Module<T> {
 
 		// Avoid reevaluate validator set if it would leave us with fewer than the minimum
 		// needed validators
-		if intentions.len() < Self::minimum_validator_count() {
+		if intentions.len() < Self::minimum_validator_count() as usize {
 			return
 		}
 
