@@ -83,7 +83,7 @@ pub enum LockStatus<BlockNumber: Parameter> {
 pub struct ValidatorPrefs<Balance> {
 	/// Validator should ensure this many more slashes than is necessary before being unstaked.
 	pub unstake_threshold: u32,
-	// Reward that validator takes up-front; only the rest is split between themself and nominators.
+	// Reward that validator takes up-front; only the rest is split between themselves and nominators.
 	pub validator_payment: Balance,
 }
 
@@ -140,26 +140,26 @@ decl_storage! {
 	trait Store for Module<T: Trait> as Staking {
 
 		/// The ideal number of staking participants.
-		pub ValidatorCount no_config get(validator_count): u32;
+		pub ValidatorCount get(validator_count): u32;
 		/// Minimum number of staking participants before emergency conditions are imposed.
 		pub MinimumValidatorCount: Option<u32>;
 		/// The length of a staking era in sessions.
-		pub SessionsPerEra no_config get(sessions_per_era): T::BlockNumber;
+		pub SessionsPerEra get(sessions_per_era): T::BlockNumber = T::BlockNumber::sa(1000);
 		/// Maximum reward, per validator, that is provided per acceptable session.
-		pub SessionReward no_config get(session_reward): Perbill;
+		pub SessionReward get(session_reward): Perbill = Perbill::from_billionths(60);
 		/// Slash, per validator that is taken for the first time they are found to be offline.
-		pub OfflineSlash no_config get(offline_slash): Perbill;
+		pub OfflineSlash get(offline_slash): Perbill = Perbill::from_fraction(0.001);
 		/// Number of instances of offline reports before slashing begins for validators.
-		pub OfflineSlashGrace no_config get(offline_slash_grace): u32;
+		pub OfflineSlashGrace get(offline_slash_grace): u32;
 		/// The length of the bonding duration in blocks.
-		pub BondingDuration no_config get(bonding_duration): T::BlockNumber;
+		pub BondingDuration get(bonding_duration): T::BlockNumber = T::BlockNumber::sa(1000);
 
 		/// The current era index.
-		pub CurrentEra no_config get(current_era): T::BlockNumber;
+		pub CurrentEra get(current_era): T::BlockNumber;
 		/// Preferences that a validator has.
 		pub ValidatorPreferences get(validator_preferences): map T::AccountId => ValidatorPrefs<T::Balance>;
 		/// All the accounts with a desire to stake.
-		pub Intentions no_config get(intentions): Vec<T::AccountId>;
+		pub Intentions get(intentions): Vec<T::AccountId>;
 		/// All nominator -> nominee relationships.
 		pub Nominating get(nominating): map T::AccountId => Option<T::AccountId>;
 		/// Nominators for a particular account.
@@ -168,9 +168,9 @@ decl_storage! {
 		pub CurrentNominatorsFor get(current_nominators_for): map T::AccountId => Vec<T::AccountId>;
 
 		/// Maximum reward, per validator, that is provided per acceptable session.
-		pub CurrentSessionReward no_config get(current_session_reward): T::Balance;
+		pub CurrentSessionReward get(current_session_reward): T::Balance;
 		/// Slash, per validator that is taken for the first time they are found to be offline.
-		pub CurrentOfflineSlash no_config get(current_offline_slash): T::Balance;
+		pub CurrentOfflineSlash get(current_offline_slash): T::Balance;
 
 		/// The next value of sessions per era.
 		pub NextSessionsPerEra no_config get(next_sessions_per_era): Option<T::BlockNumber>;
