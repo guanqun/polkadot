@@ -203,7 +203,7 @@ decl_storage! {
 		GasSpent no_config get(gas_spent): T::Gas;
 
 		/// The code associated with an account.
-		pub CodeOf: Map<T::AccountId, Vec<u8>>;	// TODO Vec<u8> values should be optimised to not do a length prefix.
+		pub CodeOf: map T::AccountId => Vec<u8>;	// TODO Vec<u8> values should be optimised to not do a length prefix.
 	}
 }
 

@@ -100,7 +100,7 @@ decl_storage! {
 		/// Block at which the session length last changed.
 		LastLengthChange: Option<T::BlockNumber>;
 		/// The next key for a given validator.
-		NextKeyFor: Map<T::AccountId, Option<T::SessionKey> >;
+		NextKeyFor: map T::AccountId => Option<T::SessionKey>;
 		/// The next session length.
 		NextSessionLength: Option<T::BlockNumber>;
 	}

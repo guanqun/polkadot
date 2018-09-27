@@ -157,15 +157,15 @@ decl_storage! {
 		/// The current era index.
 		pub CurrentEra no_config get(current_era): T::BlockNumber;
 		/// Preferences that a validator has.
-		pub ValidatorPreferences get(validator_preferences): Map<T::AccountId, ValidatorPrefs<T::Balance>>;
+		pub ValidatorPreferences get(validator_preferences): map T::AccountId => ValidatorPrefs<T::Balance>;
 		/// All the accounts with a desire to stake.
 		pub Intentions no_config get(intentions): Vec<T::AccountId>;
 		/// All nominator -> nominee relationships.
-		pub Nominating get(nominating): Map<T::AccountId, Option<T::AccountId> >;
+		pub Nominating get(nominating): map T::AccountId => Option<T::AccountId>;
 		/// Nominators for a particular account.
-		pub NominatorsFor get(nominators_for): Map<T::AccountId, Vec<T::AccountId>>;
+		pub NominatorsFor get(nominators_for): map T::AccountId => Vec<T::AccountId>;
 		/// Nominators for a particular account that is in action right now.
-		pub CurrentNominatorsFor get(current_nominators_for): Map<T::AccountId, Vec<T::AccountId>>;
+		pub CurrentNominatorsFor get(current_nominators_for): map T::AccountId => Vec<T::AccountId>;
 
 		/// Maximum reward, per validator, that is provided per acceptable session.
 		pub CurrentSessionReward no_config get(current_session_reward): T::Balance;
@@ -181,9 +181,9 @@ decl_storage! {
 		pub StakeRange no_config get(stake_range): PairOf<T::Balance>;
 
 		/// The block at which the `who`'s funds become entirely liquid.
-		pub Bondage get(bondage): Map<T::AccountId, T::BlockNumber>;
+		pub Bondage get(bondage): map T::AccountId => T::BlockNumber;
 		/// The number of times a given validator has been reported offline. This gets decremented by one each era that passes.
-		pub SlashCount get(slash_count): Map<T::AccountId, u32>;
+		pub SlashCount get(slash_count): map T::AccountId => u32;
 
 		/// We are forcing a new era.
 		pub ForcingNewEra no_config get(forcing_new_era): Option<()>;

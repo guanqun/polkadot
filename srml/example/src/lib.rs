@@ -137,7 +137,7 @@ decl_storage! {
 		//   `pub? Name no_config? get(getter_name)? : <type> (= <new_default_value>)?;`
 		// where `<type>` is either:
 		//   - `Type` (a basic value item); or
-		//   - `Map<KeyType, ValueType>` (a map item).
+		//   - `map KeyType => ValueType` (a map item).
 		//
 		// Note that there are two optional modifiers for the storage type declaration.
 		// - `Foo: Option<u32>`:
@@ -147,7 +147,7 @@ decl_storage! {
 		//   - `Foo::put(1); Foo::get()` returns `1`;
 		//   - `Foo::kill(); Foo::get()` returns `0` (u32::default()).
 		// e.g. Foo: u32;
-		// e.g. pub Bar get(bar): Map<T::AccountId, Vec<(T::Balance, u64)>>;
+		// e.g. pub Bar get(bar): map T::AccountId => Vec<(T::Balance, u64)>;
 		//
 		// For basic value items, you'll get a type which implements
 		// `runtime_support::StorageValue`. For map items, you'll get a type which
