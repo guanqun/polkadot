@@ -64,7 +64,9 @@ use node_primitives::{AccountId, AccountIndex, Balance, BlockNumber, Hash, Index
 use runtime_primitives::generic;
 use runtime_primitives::traits::{Convert, BlakeTwo256, DigestItem};
 use version::{RuntimeVersion, ApiId};
-use council::{motions as council_motions, voting as council_voting, seats as council_seats};
+use council::{motions as council_motions, voting as council_voting};
+#[cfg(feature = "std")]
+use council::seats as council_seats;
 #[cfg(any(feature = "std", test))]
 use version::NativeVersion;
 
