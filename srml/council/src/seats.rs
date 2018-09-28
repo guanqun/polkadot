@@ -17,6 +17,7 @@
 //! Council system: Handles the voting in and maintenance of council members.
 
 use rstd::prelude::*;
+use primitives;
 use primitives::traits::{Zero, One, As, OnFinalise};
 use runtime_io::print;
 use srml_support::{StorageValue, StorageMap, dispatch::Result};
@@ -100,33 +101,33 @@ decl_module! {
 }
 
 decl_storage! {
-	trait Store for Module<T: Trait> as Council {
+	trait Store for Module<T: Trait>, GenesisConfig<T> as Council {
 
 		// parameters
 		/// How much should be locked up in order to submit one's candidacy.
-		pub CandidacyBond no_config get(candidacy_bond): T::Balance;
+		pub CandidacyBond get(candidacy_bond): T::Balance = T::Balance::sa(9);
 		/// How much should be locked up in order to be able to submit votes.
-		pub VotingBond no_config get(voting_bond): T::Balance;
+		pub VotingBond get(voting_bond): T::Balance;
 		/// The punishment, per voter, if you provide an invalid presentation.
-		pub PresentSlashPerVoter no_config get(present_slash_per_voter): T::Balance;
+		pub PresentSlashPerVoter get(present_slash_per_voter): T::Balance = T::Balance::sa(1);
 		/// How many runners-up should have their approvals persist until the next vote.
-		pub CarryCount no_config get(carry_count): u32;
+		pub CarryCount get(carry_count): u32 = 2;
 		/// How long to give each top candidate to present themselves after the vote ends.
-		pub PresentationDuration no_config get(presentation_duration): T::BlockNumber;
+		pub PresentationDuration get(presentation_duration): T::BlockNumber = T::BlockNumber::sa(1000);
 		/// How many votes need to go by after a voter's last vote before they can be reaped if their
 		/// approvals are moot.
-		pub InactiveGracePeriod no_config get(inactivity_grace_period): VoteIndex;
+		pub InactiveGracePeriod get(inactivity_grace_period): VoteIndex = 1;
 		/// How often (in blocks) to check for new votes.
-		pub VotingPeriod no_config get(voting_period): T::BlockNumber;
+		pub VotingPeriod get(voting_period): T::BlockNumber = T::BlockNumber::sa(1000);
 		/// How long each position is active for.
-		pub TermDuration no_config get(term_duration): T::BlockNumber;
+		pub TermDuration get(term_duration): T::BlockNumber = T::BlockNumber::sa(5);
 		/// Number of accounts that should be sitting on the council.
-		pub DesiredSeats no_config get(desired_seats): u32;
+		pub DesiredSeats get(desired_seats): u32;
 
 		// permanent state (always relevant, changes only at the finalisation of voting)
 		/// The current council. When there's a vote going on, this should still be used for executive
 		/// matters.
-		pub ActiveCouncil no_config get(active_council): Vec<(T::AccountId, T::BlockNumber)>;
+		pub ActiveCouncil get(active_council): Vec<(T::AccountId, T::BlockNumber)>;
 		/// The total number of votes that have happened or are in progress.
 		pub VoteCount no_config get(vote_index): VoteIndex;
 
@@ -556,6 +557,27 @@ impl<T: Trait> OnFinalise<T::BlockNumber> for Module<T> {
 			print("Guru meditation");
 			print(e);
 		}
+	}
+}
+
+#[cfg(feature = "std")]
+impl<T: Trait> primitives::BuildStorage for GenesisConfig<T>
+{
+	fn build_storage(self) -> ::std::result::Result<primitives::StorageMap, String> {
+		use codec::Encode;
+
+		Ok(map![
+			Self::hash(<CandidacyBond<T>>::key()).to_vec() => self.candidacy_bond.encode(),
+			Self::hash(<VotingBond<T>>::key()).to_vec() => self.voting_bond.encode(),
+			Self::hash(<PresentSlashPerVoter<T>>::key()).to_vec() => self.present_slash_per_voter.encode(),
+			Self::hash(<CarryCount<T>>::key()).to_vec() => self.carry_count.encode(),
+			Self::hash(<PresentationDuration<T>>::key()).to_vec() => self.presentation_duration.encode(),
+			Self::hash(<VotingPeriod<T>>::key()).to_vec() => self.voting_period.encode(),
+			Self::hash(<TermDuration<T>>::key()).to_vec() => self.term_duration.encode(),
+			Self::hash(<DesiredSeats<T>>::key()).to_vec() => self.desired_seats.encode(),
+			Self::hash(<InactiveGracePeriod<T>>::key()).to_vec() => self.inactivity_grace_period.encode(),
+			Self::hash(<ActiveCouncil<T>>::key()).to_vec() => self.active_council.encode()
+		])
 	}
 }
 
