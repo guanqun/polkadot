@@ -91,7 +91,7 @@ fn staging_testnet_config_genesis() -> GenesisConfig {
 			present_slash_per_voter: 1 * CENTS,
 			carry_count: 6,
 			presentation_duration: 1 * DAYS,
-			approval_voting_period: 2 * DAYS,
+			voting_period: 2 * DAYS,
 			term_duration: 28 * DAYS,
 			desired_seats: 0,
 			inactivity_grace_period: 1,	// one additional vote should go by before an inactive voter can be reaped.
