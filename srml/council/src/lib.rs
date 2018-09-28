@@ -131,21 +131,25 @@ mod tests {
 			voting_period: 3,
 			minimum_deposit: 1,
 		}.build_storage().unwrap());
-		t.extend(GenesisConfig::<Test>{
+		t.extend(seats::GenesisConfig::<Test> {
 			candidacy_bond: 9,
-			voter_bond: 3,
+			voting_bond: 3,
 			present_slash_per_voter: 1,
 			carry_count: 2,
-			inactive_grace_period: 1,
-			active_council: if with_council { vec![
-				(1, 10),
-				(2, 10),
-				(3, 10)
-			] } else { vec![] },
-			approval_voting_period: 4,
+			inactivity_grace_period: 1,
+			active_council: if with_council {
+				vec![
+					(1, 10),
+					(2, 10),
+					(3, 10)
+				]
+			} else { vec![] },
+			voting_period: 4,
 			presentation_duration: 2,
 			desired_seats: 2,
 			term_duration: 5,
+		}.build_storage().unwrap());
+		t.extend(voting::GenesisConfig::<Test> {
 			cooloff_period: 2,
 			voting_period: 1,
 		}.build_storage().unwrap());

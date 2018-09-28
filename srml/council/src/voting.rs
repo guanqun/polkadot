@@ -18,6 +18,7 @@
 
 use rstd::prelude::*;
 use rstd::borrow::Borrow;
+#[cfg(feature = "std")]
 use primitives;
 use primitives::traits::{OnFinalise, Hash, As};
 use runtime_io::print;
