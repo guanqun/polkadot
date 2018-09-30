@@ -102,35 +102,35 @@ decl_module! {
 }
 
 decl_storage! {
-	trait Store for Module<T: Trait>, GenesisConfig<T> as Council {
+	trait Store for Module<T: Trait> as Council {
 
 		// parameters
 		/// How much should be locked up in order to submit one's candidacy.
-		pub CandidacyBond get(candidacy_bond): T::Balance = T::Balance::sa(9);
+		pub CandidacyBond get(candidacy_bond) config(): T::Balance = T::Balance::sa(9);
 		/// How much should be locked up in order to be able to submit votes.
-		pub VotingBond get(voting_bond): T::Balance;
+		pub VotingBond get(voting_bond) config(): T::Balance;
 		/// The punishment, per voter, if you provide an invalid presentation.
-		pub PresentSlashPerVoter get(present_slash_per_voter): T::Balance = T::Balance::sa(1);
+		pub PresentSlashPerVoter get(present_slash_per_voter) config(): T::Balance = T::Balance::sa(1);
 		/// How many runners-up should have their approvals persist until the next vote.
-		pub CarryCount get(carry_count): u32 = 2;
+		pub CarryCount get(carry_count) config(): u32 = 2;
 		/// How long to give each top candidate to present themselves after the vote ends.
-		pub PresentationDuration get(presentation_duration): T::BlockNumber = T::BlockNumber::sa(1000);
+		pub PresentationDuration get(presentation_duration) config(): T::BlockNumber = T::BlockNumber::sa(1000);
 		/// How many votes need to go by after a voter's last vote before they can be reaped if their
 		/// approvals are moot.
-		pub InactiveGracePeriod get(inactivity_grace_period): VoteIndex = 1;
+		pub InactiveGracePeriod get(inactivity_grace_period) config(): VoteIndex = 1;
 		/// How often (in blocks) to check for new votes.
-		pub VotingPeriod get(voting_period): T::BlockNumber = T::BlockNumber::sa(1000);
+		pub VotingPeriod get(voting_period) config(): T::BlockNumber = T::BlockNumber::sa(1000);
 		/// How long each position is active for.
-		pub TermDuration get(term_duration): T::BlockNumber = T::BlockNumber::sa(5);
+		pub TermDuration get(term_duration) config(): T::BlockNumber = T::BlockNumber::sa(5);
 		/// Number of accounts that should be sitting on the council.
-		pub DesiredSeats get(desired_seats): u32;
+		pub DesiredSeats get(desired_seats) config(): u32;
 
 		// permanent state (always relevant, changes only at the finalisation of voting)
 		/// The current council. When there's a vote going on, this should still be used for executive
 		/// matters.
-		pub ActiveCouncil get(active_council): Vec<(T::AccountId, T::BlockNumber)>;
+		pub ActiveCouncil get(active_council) config(): Vec<(T::AccountId, T::BlockNumber)>;
 		/// The total number of votes that have happened or are in progress.
-		pub VoteCount no_config get(vote_index): VoteIndex;
+		pub VoteCount get(vote_index): VoteIndex;
 
 		// persistent state (always relevant, changes constantly)
 		/// The last cleared vote index that this voter was last active at.
@@ -143,16 +143,16 @@ decl_storage! {
 		/// The present voter list.
 		pub Voters no_config get(voters): Vec<T::AccountId>;
 		/// The present candidate list.
-		pub Candidates no_config get(candidates): Vec<T::AccountId>; // has holes
-		pub CandidateCount no_config get(candidate_count): u32;
+		pub Candidates get(candidates): Vec<T::AccountId>; // has holes
+		pub CandidateCount get(candidate_count): u32;
 
 		// temporary state (only relevant during finalisation/presentation)
 		/// The accounts holding the seats that will become free on the next tally.
-		pub NextFinalise no_config get(next_finalise): Option<(T::BlockNumber, u32, Vec<T::AccountId>)>;
+		pub NextFinalise get(next_finalise): Option<(T::BlockNumber, u32, Vec<T::AccountId>)>;
 		/// The stakes as they were at the point that the vote ended.
-		pub SnapshotedStakes no_config get(snapshoted_stakes): Vec<T::Balance>;
+		pub SnapshotedStakes get(snapshoted_stakes): Vec<T::Balance>;
 		/// Get the leaderboard if we;re in the presentation phase.
-		pub Leaderboard no_config get(leaderboard): Option<Vec<(T::Balance, T::AccountId)> >; // ORDERED low -> high
+		pub Leaderboard get(leaderboard): Option<Vec<(T::Balance, T::AccountId)> >; // ORDERED low -> high
 	}
 }
 
@@ -558,27 +558,6 @@ impl<T: Trait> OnFinalise<T::BlockNumber> for Module<T> {
 			print("Guru meditation");
 			print(e);
 		}
-	}
-}
-
-#[cfg(feature = "std")]
-impl<T: Trait> primitives::BuildStorage for GenesisConfig<T>
-{
-	fn build_storage(self) -> ::std::result::Result<primitives::StorageMap, String> {
-		use codec::Encode;
-
-		Ok(map![
-			Self::hash(<CandidacyBond<T>>::key()).to_vec() => self.candidacy_bond.encode(),
-			Self::hash(<VotingBond<T>>::key()).to_vec() => self.voting_bond.encode(),
-			Self::hash(<PresentSlashPerVoter<T>>::key()).to_vec() => self.present_slash_per_voter.encode(),
-			Self::hash(<CarryCount<T>>::key()).to_vec() => self.carry_count.encode(),
-			Self::hash(<PresentationDuration<T>>::key()).to_vec() => self.presentation_duration.encode(),
-			Self::hash(<VotingPeriod<T>>::key()).to_vec() => self.voting_period.encode(),
-			Self::hash(<TermDuration<T>>::key()).to_vec() => self.term_duration.encode(),
-			Self::hash(<DesiredSeats<T>>::key()).to_vec() => self.desired_seats.encode(),
-			Self::hash(<InactiveGracePeriod<T>>::key()).to_vec() => self.inactivity_grace_period.encode(),
-			Self::hash(<ActiveCouncil<T>>::key()).to_vec() => self.active_council.encode()
-		])
 	}
 }
 
