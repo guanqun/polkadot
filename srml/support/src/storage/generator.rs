@@ -518,8 +518,10 @@ macro_rules! __generate_genesis_config {
 	(
 		[$traittype:ident $traitinstance:ident]
 		// normal getters
-		[$($classname:ident $fieldname:ident ($build:expr) : $fieldtype:ty = $fielddefault:expr ;)*]
-		// for maps
+		[$($classname:ident $fieldname:ident : $fieldtype:ty = $fielddefault:expr ;)*]
+		// for normal builders
+		[$( $normalclassname:ident ($normalbuild:expr) ;)*]
+		// for map builders
 		[$( $mapclassname:ident ($mapbuild:expr) ;)*]
 		// extra genesis fields
 		[$( $(#[$attr:meta])* $extrafieldname:ident $extrafieldty:ty = $extrafielddefault:expr; )*]
@@ -556,14 +558,14 @@ macro_rules! __generate_genesis_config {
 
 				// normal getters
 				$({
-					let v = $build(&self);
-					r.insert(Self::hash(<$classname<$traitinstance>::key()).to_vec(), v.encode());
+					let v = $normalbuild(&self);
+					r.insert(Self::hash(<$normalclassname<$traitinstance>::key()).to_vec(), v.encode());
 				})*
 
 				// for maps
 				$({
-					let iters = $mapbuild(&self);
-					for (k, v) in iters {
+					let data = $mapbuild(&self);
+					for (k, v) in data.into_iters() {
 						r.insert(Self::hash(&<$mapclassname<$traitinstance>>::key_for(k)).to_vec(), v.encode());
 					}
 				})*
@@ -605,7 +607,7 @@ macro_rules! decl_storage {
 			__impl_store_fns!($traitinstance $($t)*);
 			__impl_store_metadata!($cratename; $($t)*);
 		}
-		__decl_genesis_config_items!([$traittype $traitinstance] [] [] [$( $(#[$attr])* $extrafield $extraty ;)*] [$call] $($t)*);
+		__decl_genesis_config_items!([$traittype $traitinstance] [] [] [] [$( $(#[$attr])* $extrafield $extraty ;)*] [$call] $($t)*);
 	};
 	(
 		pub trait $storetype:ident for $modulename:ident<$traitinstance:ident: $traittype:ident> as $cratename:ident {
@@ -626,7 +628,7 @@ macro_rules! decl_storage {
 		impl<$traitinstance: $traittype> $modulename<$traitinstance> {
 			__impl_store_fns!($traitinstance $($t)*);
 		}
-		__decl_genesis_config_items!([$traittype $traitinstance] [] [] [$( $(#[$attr])* $extrafield $extraty ;)*] [$call] $($t)*);
+		__decl_genesis_config_items!([$traittype $traitinstance] [] [] [] [$( $(#[$attr])* $extrafield $extraty ;)*] [$call] $($t)*);
 	};
 	(
 		trait $storetype:ident for $modulename:ident<$traitinstance:ident: $traittype:ident> as $cratename:ident {
@@ -644,7 +646,7 @@ macro_rules! decl_storage {
 			__impl_store_fns!($traitinstance $($t)*);
 			__impl_store_metadata!($cratename; $($t)*);
 		}
-		__decl_genesis_config_items!([$traittype $traitinstance] [] [] [] [|_, _|{}] $($t)*);
+		__decl_genesis_config_items!([$traittype $traitinstance] [] [] [] [] [|_, _|{}] $($t)*);
 	};
 	(
 		pub trait $storetype:ident for $modulename:ident<$traitinstance:ident: $traittype:ident> as $cratename:ident {
@@ -661,7 +663,7 @@ macro_rules! decl_storage {
 		impl<$traitinstance: $traittype> $modulename<$traitinstance> {
 			__impl_store_fns!($traitinstance $($t)*);
 		}
-		__decl_genesis_config_items!([$traittype $traitinstance] [] [] [] [|_, _|{}] $($t)*);
+		//__decl_genesis_config_items!([$traittype $traitinstance] [] [] [] [] [|_, _|{}] $($t)*);
 	}
 }
 
@@ -672,29 +674,29 @@ macro_rules! __decl_genesis_config_items {
 	//  - pub
 	//  - $default
 	// we don't allow any config() or build() on this pattern.
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		$(#[$doc:meta])* $name:ident : map $kty:ty => $ty:ty;
 		$($t:tt)*
 	) => {
-		__decl_genesis_config_items!([$($leading)*] [$($cur)*] [$($mapcur)*] [$($extras)*] [$call] $($t)*);
+		__decl_genesis_config_items!([$($leading)*] [$($cur)*] [$($nb)*] [$($mapcur)*] [$($extras)*] [$call] $($t)*);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		$(#[$doc:meta])* $name:ident : map $kty:ty => $ty:ty = $default:expr;
 		$($t:tt)*
 	) => {
-		__decl_genesis_config_items!([$($leading)*] [$($cur)*] [$($mapcur)*] [$($extras)*] [$call] $($t)*);
+		__decl_genesis_config_items!([$($leading)*] [$($cur)*] [$($nb)*] [$($mapcur)*] [$($extras)*] [$call] $($t)*);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		pub $(#[$doc:meta])* $name:ident : map $kty:ty => $ty:ty;
 		$($t:tt)*
 	) => {
-		__decl_genesis_config_items!([$($leading)*] [$($cur)*] [$($mapcur)*] [$($extras)*] [$call] $($t)*);
+		__decl_genesis_config_items!([$($leading)*] [$($cur)*] [$($nb)*] [$($mapcur)*] [$($extras)*] [$call] $($t)*);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		pub $(#[$doc:meta])* $name:ident : map $kty:ty => $ty:ty = $default:expr;
 		$($t:tt)*
 	) => {
-		__decl_genesis_config_items!([$($leading)*] [$($cur)*] [$($mapcur)*] [$($extras)*] [$call] $($t)*);
+		__decl_genesis_config_items!([$($leading)*] [$($cur)*] [$($nb)*] [$($mapcur)*] [$($extras)*] [$call] $($t)*);
 	};
 
 	// maps with getters:
@@ -702,52 +704,56 @@ macro_rules! __decl_genesis_config_items {
 	//  - build()
 	//  - $default
 	// so there are 8 cases here.
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		$(#[$doc:meta])* $name:ident get($getfn:ident) : map $kty:ty => $ty:ty;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
 			[$($cur)*]
+			[$($nb)*]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		$(#[$doc:meta])* $name:ident get($getfn:ident) : map $kty:ty => $ty:ty = $default:expr;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
 			[$($cur)*]
+			[$($nb)*]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		$(#[$doc:meta])* $name:ident get($getfn:ident) build($build:expr) : map $kty:ty => $ty:ty;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
 			[$($cur)*]
+			[$($nb)*]
 			[$($mapcur)* $name ($build);]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		$(#[$doc:meta])* $name:ident get($getfn:ident) build($build:expr) : map $kty:ty => $ty:ty = $default:expr;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
 			[$($cur)*]
+			[$($nb)*]
 			[$($mapcur)* $name ($build);]
 			[$($extras)*]
 			[$call]
@@ -755,52 +761,56 @@ macro_rules! __decl_genesis_config_items {
 		);
 	};
 
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		pub $(#[$doc:meta])* $name:ident get($getfn:ident) : map $kty:ty => $ty:ty;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
 			[$($cur)*]
+			[$($nb)*]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		pub $(#[$doc:meta])* $name:ident get($getfn:ident) : map $kty:ty => $ty:ty = $default:expr;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
 			[$($cur)*]
+			[$($nb)*]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		pub $(#[$doc:meta])* $name:ident get($getfn:ident) build($build:expr) : map $kty:ty => $ty:ty;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
 			[$($cur)*]
+			[$($nb)*]
 			[$($mapcur)* $name ($build);]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		pub $(#[$doc:meta])* $name:ident get($getfn:ident) build($build:expr) : map $kty:ty => $ty:ty = $default:expr;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
 			[$($cur)*]
+			[$($nb)*]
 			[$($mapcur)* $name ($build);]
 			[$($extras)*]
 			[$call]
@@ -812,52 +822,56 @@ macro_rules! __decl_genesis_config_items {
 	//  - pub
 	//  - $default
 	// so there are 4 cases here.
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		$(#[$doc:meta])* $name:ident : $ty:ty;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
 			[$($cur)*]
+			[$($nb)*]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		$(#[$doc:meta])* $name:ident : $ty:ty = $default:expr;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
 			[$($cur)*]
+			[$($nb)*]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		pub $(#[$doc:meta])* $name:ident : $ty:ty;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
 			[$($cur)*]
+			[$($nb)*]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		pub $(#[$doc:meta])* $name:ident : $ty:ty = $default:expr;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
 			[$($cur)*]
+			[$($nb)*]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
@@ -867,109 +881,174 @@ macro_rules! __decl_genesis_config_items {
 
 	// simple values with getters:
 	//  - pub
-	//  - config() / config(myname)
+	//  - (empty) / config() / config(myname)
 	//  - build()
 	//  - $default
-	// so there are 16 cases here.
+	// so there are 24 cases here.
 	// Option<> types
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		$(#[$doc:meta])* $name:ident get($getfn:ident) : Option<$ty:ty>;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)*]
+			[$($nb)*]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		$(#[$doc:meta])* $name:ident get($getfn:ident) : Option<$ty:ty> = $default:expr;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)*]
+			[$($nb)*]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		$(#[$doc:meta])* $name:ident get($getfn:ident) config() : Option<$ty:ty>;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $getfn (|config| config.$getfn.clone()) : $ty = Default::default();]
+			[$($cur)* $getfn : $ty = Default::default();]
+			[$($nb)* $name (|config| config.$getfn.clone());]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		$(#[$doc:meta])* $name:ident get($getfn:ident) config() : Option<$ty:ty> = $default:expr;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $getfn (|config| config.$getfn.clone()) : $ty = $default.unwrap_or_default();]
+			[$($cur)* $getfn : $ty = $default.unwrap_or_default();]
+			[$($nb)* $name (|config| config.$getfn.clone());]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
-		$(#[$doc:meta])* $name:ident get($getfn:ident) config() build($build:expr): Option<$ty:ty>;
-		$($t:tt)*
-	) => {
-		__decl_genesis_config_items!(
-			[$($leading)*]
-			[$($cur)* $getfn ($build) : $ty = Default::default();]
-			[$($mapcur)*]
-			[$($extras)*]
-			[$call]
-			$($t)*
-		);
-	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
-		$(#[$doc:meta])* $name:ident get($getfn:ident) config() build($build:expr): Option<$ty:ty> = $default:expr;
-		$($t:tt)*
-	) => {
-		__decl_genesis_config_items!(
-			[$($leading)*]
-			[$($cur)* $getfn ($build) : $ty = $default.unwrap_or_default();]
-			[$($mapcur)*]
-			[$($extras)*]
-			[$call]
-			$($t)*
-		);
-	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		$(#[$doc:meta])* $name:ident get($getfn:ident) config($myname:ident) : Option<$ty:ty>;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $myname (|config| config.$myname.clone()) : $ty = Default::default();]
+			[$($cur)* $myname : $ty = Default::default();]
+			[$($nb)* $name (|config| config.$myname.clone()); ]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		$(#[$doc:meta])* $name:ident get($getfn:ident) config($mynanme:ident) : Option<$ty:ty> = $default:expr;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $myname (|config| config.$myname.clone()) : $ty = $default.unwrap_or_default();]
+			[$($cur)* $myname : $ty = $default.unwrap_or_default();]
+			[$($nb)* $name (|config| config.$myname.clone()); ]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
-		$(#[$doc:meta])* $name:ident get($getfn:ident) config($myname:ident) build($build:expr): Option<$ty:ty>;
+	// build
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		$(#[$doc:meta])* $name:ident get($getfn:ident) build($build:expr) : Option<$ty:ty>;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $myname ($build) : $ty = Default::default();]
+			[$($cur)*]
+			[$($nb)* $name ($build);]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
-		$(#[$doc:meta])* $name:ident get($getfn:ident) config($myname:ident) build($build:expr): Option<$ty:ty> = $default:expr;
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		$(#[$doc:meta])* $name:ident get($getfn:ident) build($build:expr) : Option<$ty:ty> = $default:expr;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $myname ($build) : $ty = $default.unwrap_or_default();]
+			[$($cur)*]
+			[$($nb)* $name ($build);]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		$(#[$doc:meta])* $name:ident get($getfn:ident) config() build($build:expr) : Option<$ty:ty>;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)* $getfn : $ty = Default::default();]
+			[$($nb)* $name ($build);]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		$(#[$doc:meta])* $name:ident get($getfn:ident) config() build($build:expr) : Option<$ty:ty> = $default:expr;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)* $getfn : $ty = $default.unwrap_or_default();]
+			[$($nb)* $name ($build);]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		$(#[$doc:meta])* $name:ident get($getfn:ident) config($myname:ident) build($build:expr) : Option<$ty:ty>;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)* $myname : $ty = Default::default();]
+			[$($nb)* $name ($build);]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		$(#[$doc:meta])* $name:ident get($getfn:ident) config($mynanme:ident) build($build:expr) : Option<$ty:ty> = $default:expr;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)* $myname : $ty = $default.unwrap_or_default();]
+			[$($nb)* $name ($build);]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
@@ -977,104 +1056,170 @@ macro_rules! __decl_genesis_config_items {
 		);
 	};
 
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	// pub
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		pub $(#[$doc:meta])* $name:ident get($getfn:ident) : Option<$ty:ty>;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)*]
+			[$($nb)*]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		pub $(#[$doc:meta])* $name:ident get($getfn:ident) : Option<$ty:ty> = $default:expr;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)*]
+			[$($nb)*]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config() : Option<$ty:ty>;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $getfn (|config| config.$getfn.clone()) : $ty = Default::default();]
+			[$($cur)* $getfn : $ty = Default::default();]
+			[$($nb)* $name (|config| config.$getfn.clone());]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config() : Option<$ty:ty> = $default:expr;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $getfn (|config| config.$getfn.clone()) : $ty = $default.unwrap_or_default();]
+			[$($cur)* $getfn : $ty = $default.unwrap_or_default();]
+			[$($nb)* $name (|config| config.$getfn.clone());]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
-		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config() build($build:expr): Option<$ty:ty>;
-		$($t:tt)*
-	) => {
-		__decl_genesis_config_items!(
-			[$($leading)*]
-			[$($cur)* $getfn ($build) : $ty = Default::default();]
-			[$($mapcur)*]
-			[$($extras)*]
-			[$call]
-			$($t)*
-		);
-	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
-		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config() build($build:expr): Option<$ty:ty> = $default:expr;
-		$($t:tt)*
-	) => {
-		__decl_genesis_config_items!(
-			[$($leading)*]
-			[$($cur)* $getfn ($build) : $ty = $default.unwrap_or_default();]
-			[$($mapcur)*]
-			[$($extras)*]
-			[$call]
-			$($t)*
-		);
-	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config($myname:ident) : Option<$ty:ty>;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $myname (|config| config.$myname.clone()) : $ty = Default::default();]
+			[$($cur)* $myname : $ty = Default::default();]
+			[$($nb)* $name (|config| config.$myname.clone()); ]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config($mynanme:ident) : Option<$ty:ty> = $default:expr;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $myname (|config| config.$myname.clone()) : $ty = $default.unwrap_or_default();]
+			[$($cur)* $myname : $ty = $default.unwrap_or_default();]
+			[$($nb)* $name (|config| config.$myname.clone()); ]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
-		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config($myname:ident) build($build:expr): Option<$ty:ty>;
+	// build
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		pub $(#[$doc:meta])* $name:ident get($getfn:ident) build($build:expr) : Option<$ty:ty>;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $myname ($build) : $ty = Default::default();]
+			[$($cur)*]
+			[$($nb)* $name ($build);]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
-		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config($myname:ident) build($build:expr): Option<$ty:ty> = $default:expr;
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		pub $(#[$doc:meta])* $name:ident get($getfn:ident) build($build:expr) : Option<$ty:ty> = $default:expr;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $myname ($build) : $ty = $default.unwrap_or_default();]
+			[$($cur)*]
+			[$($nb)* $name ($build);]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config() build($build:expr) : Option<$ty:ty>;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)* $getfn : $ty = Default::default();]
+			[$($nb)* $name ($build);]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config() build($build:expr) : Option<$ty:ty> = $default:expr;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)* $getfn : $ty = $default.unwrap_or_default();]
+			[$($nb)* $name ($build);]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config($myname:ident) build($build:expr) : Option<$ty:ty>;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)* $myname : $ty = Default::default();]
+			[$($nb)* $name ($build);]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config($mynanme:ident) build($build:expr) : Option<$ty:ty> = $default:expr;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)* $myname : $ty = $default.unwrap_or_default();]
+			[$($nb)* $name ($build);]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
@@ -1082,105 +1227,171 @@ macro_rules! __decl_genesis_config_items {
 		);
 	};
 
+
 	// raw types
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		$(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)*]
+			[$($nb)*]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		$(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty = $default:expr;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)*]
+			[$($nb)*]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		$(#[$doc:meta])* $name:ident get($getfn:ident) config() : $ty:ty;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $getfn (|config| config.$getfn.clone()) : $ty = Default::default();]
+			[$($cur)* $getfn : $ty = Default::default();]
+			[$($nb)* $name (|config| config.$getfn.clone());]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		$(#[$doc:meta])* $name:ident get($getfn:ident) config() : $ty:ty = $default:expr;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $getfn (|config| config.$getfn.clone()) : $ty = $default;]
+			[$($cur)* $getfn : $ty = $default;]
+			[$($nb)* $name (|config| config.$getfn.clone());]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
-		$(#[$doc:meta])* $name:ident get($getfn:ident) config() build($build:expr): $ty:ty;
-		$($t:tt)*
-	) => {
-		__decl_genesis_config_items!(
-			[$($leading)*]
-			[$($cur)* $getfn ($build) : $ty = Default::default();]
-			[$($mapcur)*]
-			[$($extras)*]
-			[$call]
-			$($t)*
-		);
-	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
-		$(#[$doc:meta])* $name:ident get($getfn:ident) config() build($build:expr): $ty:ty = $default:expr;
-		$($t:tt)*
-	) => {
-		__decl_genesis_config_items!(
-			[$($leading)*]
-			[$($cur)* $getfn ($build) : $ty = $default;]
-			[$($mapcur)*]
-			[$($extras)*]
-			[$call]
-			$($t)*
-		);
-	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		$(#[$doc:meta])* $name:ident get($getfn:ident) config($myname:ident) : $ty:ty;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $myname (|config| config.$myname.clone()) : $ty = Default::default();]
+			[$($cur)* $myname : $ty = Default::default();]
+			[$($nb)* $name (|config| config.$myname.clone()); ]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		$(#[$doc:meta])* $name:ident get($getfn:ident) config($mynanme:ident) : $ty:ty = $default:expr;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $myname (|config| config.$myname.clone()) : $ty = $default;]
+			[$($cur)* $myname : $ty = $default;]
+			[$($nb)* $name (|config| config.$myname.clone()); ]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
-		$(#[$doc:meta])* $name:ident get($getfn:ident) config($myname:ident) build($build:expr): $ty:ty;
+	// build
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		$(#[$doc:meta])* $name:ident get($getfn:ident) build($build:expr) : $ty:ty;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $myname ($build) : $ty = Default::default();]
+			[$($cur)*]
+			[$($nb)* $name ($build);]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
-		$(#[$doc:meta])* $name:ident get($getfn:ident) config($myname:ident) build($build:expr): $ty:ty = $default:expr;
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		$(#[$doc:meta])* $name:ident get($getfn:ident) build($build:expr) : $ty:ty = $default:expr;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $myname ($build) : $ty = $default;]
+			[$($cur)*]
+			[$($nb)* $name ($build);]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		$(#[$doc:meta])* $name:ident get($getfn:ident) config() build($build:expr) : $ty:ty;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)* $getfn : $ty = Default::default();]
+			[$($nb)* $name ($build);]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		$(#[$doc:meta])* $name:ident get($getfn:ident) config() build($build:expr) : $ty:ty = $default:expr;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)* $getfn : $ty = $default;]
+			[$($nb)* $name ($build);]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		$(#[$doc:meta])* $name:ident get($getfn:ident) config($myname:ident) build($build:expr) : $ty:ty;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)* $myname : $ty = Default::default();]
+			[$($nb)* $name ($build);]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		$(#[$doc:meta])* $name:ident get($getfn:ident) config($mynanme:ident) build($build:expr) : $ty:ty = $default:expr;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)* $myname : $ty = $default;]
+			[$($nb)* $name ($build);]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
@@ -1188,104 +1399,170 @@ macro_rules! __decl_genesis_config_items {
 		);
 	};
 
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	// pub
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		pub $(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)*]
+			[$($nb)*]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		pub $(#[$doc:meta])* $name:ident get($getfn:ident) : $ty:ty = $default:expr;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)*]
+			[$($nb)*]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config() : $ty:ty;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $getfn (|config| config.$getfn.clone()) : $ty = Default::default();]
+			[$($cur)* $getfn : $ty = Default::default();]
+			[$($nb)* $name (|config| config.$getfn.clone());]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config() : $ty:ty = $default:expr;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $getfn (|config| config.$getfn.clone()) : $ty = $default;]
+			[$($cur)* $getfn : $ty = $default;]
+			[$($nb)* $name (|config| config.$getfn.clone());]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
-		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config() build($build:expr): $ty:ty;
-		$($t:tt)*
-	) => {
-		__decl_genesis_config_items!(
-			[$($leading)*]
-			[$($cur)* $getfn ($build) : $ty = Default::default();]
-			[$($mapcur)*]
-			[$($extras)*]
-			[$call]
-			$($t)*
-		);
-	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
-		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config() build($build:expr): $ty:ty = $default:expr;
-		$($t:tt)*
-	) => {
-		__decl_genesis_config_items!(
-			[$($leading)*]
-			[$($cur)* $getfn ($build) : $ty = $default;]
-			[$($mapcur)*]
-			[$($extras)*]
-			[$call]
-			$($t)*
-		);
-	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config($myname:ident) : $ty:ty;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $myname (|config| config.$myname.clone()) : $ty = Default::default();]
+			[$($cur)* $myname : $ty = Default::default();]
+			[$($nb)* $name (|config| config.$myname.clone()); ]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
 		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config($mynanme:ident) : $ty:ty = $default:expr;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $myname (|config| config.$myname.clone()) : $ty = $default;]
+			[$($cur)* $myname : $ty = $default;]
+			[$($nb)* $name (|config| config.$myname.clone()); ]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
-		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config($myname:ident) build($build:expr): $ty:ty;
+	// build
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		pub $(#[$doc:meta])* $name:ident get($getfn:ident) build($build:expr) : $ty:ty;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $myname ($build) : $ty = Default::default();]
+			[$($cur)*]
+			[$($nb)* $name ($build);]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
 			$($t)*
 		);
 	};
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
-		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config($myname:ident) build($build:expr): $ty:ty = $default:expr;
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		pub $(#[$doc:meta])* $name:ident get($getfn:ident) build($build:expr) : $ty:ty = $default:expr;
 		$($t:tt)*
 	) => {
 		__decl_genesis_config_items!(
 			[$($leading)*]
-			[$($cur)* $myname ($build) : $ty = $default;]
+			[$($cur)*]
+			[$($nb)* $name ($build);]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config() build($build:expr) : $ty:ty;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)* $getfn : $ty = Default::default();]
+			[$($nb)* $name ($build);]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config() build($build:expr) : $ty:ty = $default:expr;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)* $getfn : $ty = $default;]
+			[$($nb)* $name ($build);]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config($myname:ident) build($build:expr) : $ty:ty;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)* $myname : $ty = Default::default();]
+			[$($nb)* $name ($build);]
+			[$($mapcur)*]
+			[$($extras)*]
+			[$call]
+			$($t)*
+		);
+	};
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]
+		pub $(#[$doc:meta])* $name:ident get($getfn:ident) config($mynanme:ident) build($build:expr) : $ty:ty = $default:expr;
+		$($t:tt)*
+	) => {
+		__decl_genesis_config_items!(
+			[$($leading)*]
+			[$($cur)* $myname : $ty = $default;]
+			[$($nb)* $name ($build);]
 			[$($mapcur)*]
 			[$($extras)*]
 			[$call]
@@ -1294,8 +1571,8 @@ macro_rules! __decl_genesis_config_items {
 	};
 
 	// exit
-	([$($leading:ident)*] [$($cur:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]) => {
-		__generate_genesis_config!([$($leading)*] [$($cur)*] [$($mapcur)*] [$($extras)*] [$call]);
+	([$($leading:ident)*] [$($cur:tt)*] [$($nb:tt)*] [$($mapcur:tt)*] [$($extras:tt)*] [$call:expr]) => {
+		__generate_genesis_config!([$($leading)*] [$($cur)*] [$($nb)*] [$($mapcur)*] [$($extras)*] [$call]);
 	}
 }
 
@@ -2345,36 +2622,7 @@ mod tests {
 		trait Store for Module<T: Trait> as TestStorage {
 			// non-getters: pub / $default
 
-			/// Hello, this is doc!
-			U32 : Option<u32> = Some(3);
-			pub PUBU32 : Option<u32>;
-			U32MYDEF : Option<u32> = None;
-			pub PUBU32MYDEF : Option<u32> = Some(3);
-
-			// getters: pub / $default
-			// we need at least one type which uses T, otherwise GenesisConfig will complain.
 			GETU32 get(u32_getter): T::Origin;
-			pub PUBGETU32 get(pub_u32_getter): u32;
-			GETU32WITHCONFIG get(u32_getter_with_config) config(): u32;
-			pub PUBGETU32WITHCONFIG get(pub_u32_getter_with_config) config(): u32;
-			GETU32MYDEF get(u32_getter_mydef): Option<u32> = Some(4);
-			pub PUBGETU32MYDEF get(pub_u32_getter_mydef): u32 = 3;
-			GETU32WITHCONFIGMYDEF get(u32_getter_with_config_mydef) config(): u32 = 2;
-			pub PUBGETU32WITHCONFIGMYDEF get(pub_u32_getter_with_config_mydef) config(): u32 = 1;
-			PUBGETU32WITHCONFIGMYDEFOPT get(pub_u32_getter_with_config_mydef_opt) config(): Option<u32> = Some(100);
-
-			// map non-getters: pub / $default
-			MAPU32 : map u32 => Option<String>;
-			pub PUBMAPU32 : map u32 => Option<String>;
-			MAPU32MYDEF : map u32 => Option<String> = None;
-			pub PUBMAPU32MYDEF : map u32 => Option<String> = Some("hello".into());
-
-			// map getters: pub / $default
-			GETMAPU32 get(map_u32_getter): map u32 => String;
-			pub PUBGETMAPU32 get(pub_map_u32_getter): map u32 => String;
-
-			GETMAPU32MYDEF get(map_u32_getter_mydef): map u32 => String = "map".into();
-			pub PUBGETMAPU32MYDEF get(pub_map_u32_getter_mydef): map u32 => String = "pubmap".into();
 		}
 	}
 
