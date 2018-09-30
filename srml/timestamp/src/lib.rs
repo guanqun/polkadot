@@ -74,9 +74,9 @@ decl_module! {
 decl_storage! {
 	trait Store for Module<T: Trait> as Timestamp {
 		/// Current time for the current block.
-		pub Now no_config get(now): T::Moment;
+		pub Now get(now) build(|_| T::Moment::sa(0)): T::Moment;
 		/// The minimum (and advised) period between blocks.
-		pub BlockPeriod no_config get(block_period): T::Moment;
+		pub BlockPeriod get(block_period) config(period): T::Moment = T::Moment::sa(5);
 
 		/// Did the timestamp get updated in this block?
 		DidUpdate: bool;
@@ -128,37 +128,6 @@ impl<T: Trait> Module<T> {
 impl<T: Trait> OnFinalise<T::BlockNumber> for Module<T> {
 	fn on_finalise(_n: T::BlockNumber) {
 		assert!(<Self as Store>::DidUpdate::take(), "Timestamp must be updated once in the block");
-	}
-}
-
-/// Configuration of a genesis block for the timestamp module.
-#[cfg(any(feature = "std", test))]
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-#[serde(deny_unknown_fields)]
-pub struct GenesisConfig<T: Trait> {
-	/// The minimum (and advised) period between blocks.
-	pub period: T::Moment,
-}
-
-#[cfg(any(feature = "std", test))]
-impl<T: Trait> Default for GenesisConfig<T> {
-	fn default() -> Self {
-		GenesisConfig {
-			period: T::Moment::sa(5),
-		}
-	}
-}
-
-#[cfg(any(feature = "std", test))]
-impl<T: Trait> runtime_primitives::BuildStorage for GenesisConfig<T>
-{
-	fn build_storage(self) -> ::std::result::Result<runtime_primitives::StorageMap, String> {
-		use codec::Encode;
-		Ok(map![
-			Self::hash(<BlockPeriod<T>>::key()).to_vec() => self.period.encode(),
-			Self::hash(<Now<T>>::key()).to_vec() => T::Moment::sa(0).encode()
-		])
 	}
 }
 
