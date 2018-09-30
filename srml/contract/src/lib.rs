@@ -182,40 +182,24 @@ decl_event! {
 }
 
 decl_storage! {
-	trait Store for Module<T: Trait>, GenesisConfig<T> as Contract {
+	trait Store for Module<T: Trait> as Contract {
 		/// The fee required to create a contract. At least as big as staking's ReclaimRebate.
-		ContractFee get(contract_fee): T::Balance = T::Balance::sa(21);
+		ContractFee get(contract_fee) config(): T::Balance = T::Balance::sa(21);
 		/// The fee charged for a call into a contract.
-		CallBaseFee get(call_base_fee): T::Gas = T::Gas::sa(135);
+		CallBaseFee get(call_base_fee) config(): T::Gas = T::Gas::sa(135);
 		/// The fee charged for a create of a contract.
-		CreateBaseFee get(create_base_fee): T::Gas = T::Gas::sa(175);
+		CreateBaseFee get(create_base_fee) config(): T::Gas = T::Gas::sa(175);
 		/// The price of one unit of gas.
-		GasPrice get(gas_price): T::Balance = T::Balance::sa(1);
+		GasPrice get(gas_price) config(): T::Balance = T::Balance::sa(1);
 		/// The maximum nesting level of a call/create stack.
-		MaxDepth get(max_depth): u32 = 100;
+		MaxDepth get(max_depth) config(): u32 = 100;
 		/// The maximum amount of gas that could be expended per block.
-		BlockGasLimit get(block_gas_limit): T::Gas = T::Gas::sa(1_000_000);
+		BlockGasLimit get(block_gas_limit) config(): T::Gas = T::Gas::sa(1_000_000);
 		/// Gas spent so far in this block.
-		GasSpent no_config get(gas_spent): T::Gas;
+		GasSpent get(gas_spent): T::Gas;
 
 		/// The code associated with an account.
 		pub CodeOf: map T::AccountId => Vec<u8>;	// TODO Vec<u8> values should be optimised to not do a length prefix.
-	}
-}
-
-#[cfg(feature = "std")]
-impl<T: Trait> runtime_primitives::BuildStorage for GenesisConfig<T> {
-	fn build_storage(self) -> ::std::result::Result<runtime_primitives::StorageMap, String> {
-		use runtime_io::twox_128;
-		use codec::Encode;
-		Ok(map![
-			twox_128(<ContractFee<T>>::key()).to_vec() => self.contract_fee.encode(),
-			twox_128(<CallBaseFee<T>>::key()).to_vec() => self.call_base_fee.encode(),
-			twox_128(<CreateBaseFee<T>>::key()).to_vec() => self.create_base_fee.encode(),
-			twox_128(<GasPrice<T>>::key()).to_vec() => self.gas_price.encode(),
-			twox_128(<MaxDepth<T>>::key()).to_vec() => self.max_depth.encode(),
-			twox_128(<BlockGasLimit<T>>::key()).to_vec() => self.block_gas_limit.encode()
-		])
 	}
 }
 
