@@ -44,10 +44,10 @@ decl_module! {
 }
 
 decl_storage! {
-	trait Store for Module<T: Trait>, GenesisConfig<T> as CouncilVoting {
-		pub CooloffPeriod get(cooloff_period): T::BlockNumber = T::BlockNumber::sa(1000);
-		pub VotingPeriod get(voting_period): T::BlockNumber = T::BlockNumber::sa(3);
-		pub Proposals no_config get(proposals): Vec<(T::BlockNumber, T::Hash)>; // ordered by expiry.
+	trait Store for Module<T: Trait> as CouncilVoting {
+		pub CooloffPeriod get(cooloff_period) config(): T::BlockNumber = T::BlockNumber::sa(1000);
+		pub VotingPeriod get(voting_period) config(): T::BlockNumber = T::BlockNumber::sa(3);
+		pub Proposals get(proposals) build(|_| vec![0u8; 0]): Vec<(T::BlockNumber, T::Hash)>; // ordered by expiry.
 		pub ProposalOf get(proposal_of): map T::Hash => Option<T::Proposal>;
 		pub ProposalVoters get(proposal_voters): map T::Hash => Vec<T::AccountId>;
 		pub CouncilVoteOf get(vote_of): map (T::Hash, T::AccountId) => Option<bool>;
@@ -234,20 +234,6 @@ impl<T: Trait> OnFinalise<T::BlockNumber> for Module<T> {
 			print("Guru meditation");
 			print(e);
 		}
-	}
-}
-
-#[cfg(feature = "std")]
-impl<T: Trait> primitives::BuildStorage for GenesisConfig<T>
-{
-	fn build_storage(self) -> ::std::result::Result<primitives::StorageMap, String> {
-		use codec::Encode;
-
-		Ok(map![
-			Self::hash(<CooloffPeriod<T>>::key()).to_vec() => self.cooloff_period.encode(),
-			Self::hash(<VotingPeriod<T>>::key()).to_vec() => self.voting_period.encode(),
-			Self::hash(<Proposals<T>>::key()).to_vec() => vec![0u8; 0].encode()
-		])
 	}
 }
 
