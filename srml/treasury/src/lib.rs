@@ -102,35 +102,35 @@ pub struct Proposal<AccountId, Balance> {
 }
 
 decl_storage! {
-	trait Store for Module<T: Trait>, GenesisConfig<T> as Treasury {
+	trait Store for Module<T: Trait> as Treasury {
 		// Config...
 
 		/// Proportion of funds that should be bonded in order to place a proposal. An accepted
 		/// proposal gets these back. A rejected proposal doesn't.
-		ProposalBond get(proposal_bond): Permill;
+		ProposalBond get(proposal_bond) config(): Permill;
 
 		/// Minimum amount of funds that should be placed in a deposit for making a proposal.
-		ProposalBondMinimum get(proposal_bond_minimum): T::Balance;
+		ProposalBondMinimum get(proposal_bond_minimum) config(): T::Balance;
 
 		/// Period between successive spends.
-		SpendPeriod get(spend_period): T::BlockNumber = runtime_primitives::traits::One::one();
+		SpendPeriod get(spend_period) config(): T::BlockNumber = runtime_primitives::traits::One::one();
 
 		/// Percentage of spare funds (if any) that are burnt per spend period.
-		Burn get(burn): Permill;
+		Burn get(burn) config(): Permill;
 
 		// State...
 
 		/// Total funds available to this module for spending.
-		Pot no_config get(pot): T::Balance;
+		Pot get(pot): T::Balance;
 
 		/// Number of proposals that have been made.
-		ProposalCount no_config get(proposal_count): ProposalIndex;
+		ProposalCount get(proposal_count): ProposalIndex;
 
 		/// Proposals that have been made.
 		Proposals get(proposals): map ProposalIndex => Option<Proposal<T::AccountId, T::Balance>>;
 
 		/// Proposal indices that have been approved but not yet awarded.
-		Approvals no_config get(approvals): Vec<ProposalIndex>;
+		Approvals get(approvals): Vec<ProposalIndex>;
 	}
 }
 
@@ -284,20 +284,6 @@ impl<T: Trait> OnFinalise<T::BlockNumber> for Module<T> {
 		if (n % Self::spend_period()).is_zero() {
 			Self::spend_funds();
 		}
-	}
-}
-
-#[cfg(feature = "std")]
-impl<T: Trait> runtime_primitives::BuildStorage for GenesisConfig<T>
-{
-	fn build_storage(self) -> ::std::result::Result<runtime_primitives::StorageMap, String> {
-		use codec::Encode;
-		Ok(map![
-			Self::hash(<ProposalBond<T>>::key()).to_vec() => self.proposal_bond.encode(),
-			Self::hash(<ProposalBondMinimum<T>>::key()).to_vec() => self.proposal_bond_minimum.encode(),
-			Self::hash(<SpendPeriod<T>>::key()).to_vec() => self.spend_period.encode(),
-			Self::hash(<Burn<T>>::key()).to_vec() => self.burn.encode()
-		])
 	}
 }
 
