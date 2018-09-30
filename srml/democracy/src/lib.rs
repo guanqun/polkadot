@@ -71,26 +71,26 @@ decl_module! {
 }
 
 decl_storage! {
-	trait Store for Module<T: Trait>, GenesisConfig<T> as Democracy {
+	trait Store for Module<T: Trait> as Democracy {
 
 		/// The number of (public) proposals that have been made so far.
-		pub PublicPropCount no_config get(public_prop_count): PropIndex;
+		pub PublicPropCount get(public_prop_count) build(|_| 0 as PropIndex) : PropIndex; // TODO: see if we can get rid of this 'as type' thing.
 		/// The public proposals. Unsorted.
-		pub PublicProps no_config get(public_props): Vec<(PropIndex, T::Proposal, T::AccountId)>;
+		pub PublicProps get(public_props): Vec<(PropIndex, T::Proposal, T::AccountId)>;
 		/// Those who have locked a deposit.
 		pub DepositOf get(deposit_of): map PropIndex => Option<(T::Balance, Vec<T::AccountId>)>;
 		/// How often (in blocks) new public referenda are launched.
-		pub LaunchPeriod get(launch_period): T::BlockNumber = T::BlockNumber::sa(1000);
+		pub LaunchPeriod get(launch_period) config(): T::BlockNumber = T::BlockNumber::sa(1000);
 		/// The minimum amount to be used as a deposit for a public referendum proposal.
-		pub MinimumDeposit get(minimum_deposit): T::Balance;
+		pub MinimumDeposit get(minimum_deposit) config(): T::Balance;
 
 		/// How often (in blocks) to check for new votes.
-		pub VotingPeriod get(voting_period): T::BlockNumber = T::BlockNumber::sa(1000);
+		pub VotingPeriod get(voting_period) config(): T::BlockNumber = T::BlockNumber::sa(1000);
 
 		/// The next free referendum index, aka the number of referendums started so far.
-		pub ReferendumCount no_config get(referendum_count): ReferendumIndex;
+		pub ReferendumCount get(referendum_count) build(|_| 0 as ReferendumIndex): ReferendumIndex;
 		/// The next referendum index that should be tallied.
-		pub NextTally no_config get(next_tally): ReferendumIndex;
+		pub NextTally get(next_tally) build(|_| 0 as ReferendumIndex): ReferendumIndex;
 		/// Information concerning any given referendum.
 		pub ReferendumInfoOf get(referendum_info): map ReferendumIndex => Option<(T::BlockNumber, T::Proposal, VoteThreshold)>;
 
@@ -311,16 +311,17 @@ impl<T: Trait> OnFinalise<T::BlockNumber> for Module<T> {
 	}
 }
 
-#[cfg(any(feature = "std", test))]
-impl<T: Trait> GenesisConfig<T> {
-	pub fn new() -> Self {
-		GenesisConfig {
-			launch_period: T::BlockNumber::sa(1),
-			voting_period: T::BlockNumber::sa(1),
-			minimum_deposit: T::Balance::sa(1),
-		}
-	}
-}
+// to see if we need this
+//#[cfg(any(feature = "std", test))]
+//impl<T: Trait> GenesisConfig<T> {
+//	pub fn new() -> Self {
+//		GenesisConfig {
+//			launch_period: T::BlockNumber::sa(1),
+//			voting_period: T::BlockNumber::sa(1),
+//			minimum_deposit: T::Balance::sa(1),
+//		}
+//	}
+//}
 
 #[cfg(any(feature = "std", test))]
 impl<T: Trait> primitives::BuildStorage for GenesisConfig<T>
