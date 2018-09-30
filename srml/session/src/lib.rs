@@ -83,20 +83,20 @@ decl_event!(
 );
 
 decl_storage! {
-	trait Store for Module<T: Trait>, GenesisConfig<T> as Session {
+	trait Store for Module<T: Trait> as Session {
 
 		/// The current set of validators.
-		pub Validators get(validators): Vec<T::AccountId>;
+		pub Validators get(validators) config(): Vec<T::AccountId>;
 		/// Current length of the session.
-		pub SessionLength get(session_length): T::BlockNumber = T::BlockNumber::sa(1000);
+		pub SessionLength get(session_length) config(): T::BlockNumber = T::BlockNumber::sa(1000);
 		/// Current index of the session.
-		pub CurrentIndex no_config get(current_index): T::BlockNumber;
+		pub CurrentIndex get(current_index) build(|_| T::BlockNumber::sa(0)): T::BlockNumber;
 		/// Timestamp when current session started.
-		pub CurrentStart no_config get(current_start): T::Moment;
+		pub CurrentStart get(current_start) build(|_| T::Moment::zero()): T::Moment;
 
 		/// New session is being forced is this entry exists; in which case, the boolean value is whether
 		/// the new session should be considered a normal rotation (rewardable) or exceptional (slashable).
-		pub ForcingNewSession no_config get(forcing_new_session): Option<bool>;
+		pub ForcingNewSession get(forcing_new_session): Option<bool>;
 		/// Block at which the session length last changed.
 		LastLengthChange: Option<T::BlockNumber>;
 		/// The next key for a given validator.
@@ -230,21 +230,6 @@ impl<T: Trait> Module<T> {
 impl<T: Trait> OnFinalise<T::BlockNumber> for Module<T> {
 	fn on_finalise(n: T::BlockNumber) {
 		Self::check_rotate_session(n);
-	}
-}
-
-#[cfg(any(feature = "std", test))]
-impl<T: Trait> primitives::BuildStorage for GenesisConfig<T>
-{
-	fn build_storage(self) -> ::std::result::Result<primitives::StorageMap, String> {
-		use codec::Encode;
-		use primitives::traits::As;
-		Ok(map![
-			Self::hash(<SessionLength<T>>::key()).to_vec() => self.session_length.encode(),
-			Self::hash(<CurrentIndex<T>>::key()).to_vec() => T::BlockNumber::sa(0).encode(),
-			Self::hash(<CurrentStart<T>>::key()).to_vec() => T::Moment::zero().encode(),
-			Self::hash(<Validators<T>>::key()).to_vec() => self.validators.encode()
-		])
 	}
 }
 
