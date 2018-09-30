@@ -535,29 +535,6 @@ macro_rules! __generate_genesis_config {
 				}
 			}
 		}
-
-	};
-	(
-		[]
-		$($fieldname:ident : $fieldtype:ty = $fielddefault:expr ;)*
-	) => {
-		#[derive(Serialize, Deserialize)]
-		#[cfg(feature = "std")]
-		#[serde(rename_all = "camelCase")]
-		#[serde(deny_unknown_fields)]
-		pub struct GenesisConfig {
-			$(pub $fieldname : $fieldtype ,)*
-		}
-
-		#[cfg(feature = "std")]
-		impl Default for GenesisConfig {
-			fn default() -> Self {
-				GenesisConfig {
-					$($fieldname : $fielddefault ,)*
-				}
-			}
-		}
-
 	};
 }
 
@@ -569,76 +546,6 @@ macro_rules! __generate_genesis_config {
 /// the simpler `Module::Item`. Hopefully the rust guys with fix this soon.
 #[macro_export]
 macro_rules! decl_storage {
-	(
-		trait $storetype:ident for $modulename:ident<$traitinstance:ident: $traittype:ident> , GenesisConfig<$ignore:ident> as $cratename:ident {
-			$($t:tt)*
-		}
-	) => {
-		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
-		trait $storetype {
-			__decl_store_items!($($t)*);
-		}
-		impl<$traitinstance: $traittype> $storetype for $modulename<$traitinstance> {
-			__impl_store_items!($traitinstance $($t)*);
-		}
-		impl<$traitinstance: $traittype> $modulename<$traitinstance> {
-			__impl_store_fns!($traitinstance $($t)*);
-			__impl_store_metadata!($cratename; $($t)*);
-		}
-		__decl_genesis_config_items!([$traittype $traitinstance] [] $($t)*);
-	};
-	(
-		pub trait $storetype:ident for $modulename:ident<$traitinstance:ident: $traittype:ident> , GenesisConfig<$ignore:ident> as $cratename:ident {
-			$($t:tt)*
-		}
-	) => {
-		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
-		pub trait $storetype {
-			__decl_store_items!($($t)*);
-		}
-		impl<$traitinstance: $traittype> $storetype for $modulename<$traitinstance> {
-			__impl_store_items!($traitinstance $($t)*);
-		}
-		impl<$traitinstance: $traittype> $modulename<$traitinstance> {
-			__impl_store_fns!($traitinstance $($t)*);
-		}
-		__decl_genesis_config_items!([$traittype $traitinstance] [] $($t)*);
-	};
-	(
-		trait $storetype:ident for $modulename:ident<$traitinstance:ident: $traittype:ident> , GenesisConfig as $cratename:ident {
-			$($t:tt)*
-		}
-	) => {
-		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
-		trait $storetype {
-			__decl_store_items!($($t)*);
-		}
-		impl<$traitinstance: $traittype> $storetype for $modulename<$traitinstance> {
-			__impl_store_items!($traitinstance $($t)*);
-		}
-		impl<$traitinstance: $traittype> $modulename<$traitinstance> {
-			__impl_store_fns!($traitinstance $($t)*);
-			__impl_store_metadata!($cratename; $($t)*);
-		}
-		__decl_genesis_config_items!([] [] $($t)*);
-	};
-	(
-		pub trait $storetype:ident for $modulename:ident<$traitinstance:ident: $traittype:ident> , GenesisConfig as $cratename:ident {
-			$($t:tt)*
-		}
-	) => {
-		__decl_storage_items!($cratename $traittype $traitinstance $($t)*);
-		pub trait $storetype {
-			__decl_store_items!($($t)*);
-		}
-		impl<$traitinstance: $traittype> $storetype for $modulename<$traitinstance> {
-			__impl_store_items!($traitinstance $($t)*);
-		}
-		impl<$traitinstance: $traittype> $modulename<$traitinstance> {
-			__impl_store_fns!($traitinstance $($t)*);
-		}
-		__decl_genesis_config_items!([] [] $($t)*);
-	};
 	(
 		trait $storetype:ident for $modulename:ident<$traitinstance:ident: $traittype:ident> as $cratename:ident {
 			$($t:tt)*
@@ -655,6 +562,7 @@ macro_rules! decl_storage {
 			__impl_store_fns!($traitinstance $($t)*);
 			__impl_store_metadata!($cratename; $($t)*);
 		}
+		__decl_genesis_config_items!([$traittype $traitinstance] [] $($t)*);
 	};
 	(
 		pub trait $storetype:ident for $modulename:ident<$traitinstance:ident: $traittype:ident> as $cratename:ident {
@@ -671,6 +579,7 @@ macro_rules! decl_storage {
 		impl<$traitinstance: $traittype> $modulename<$traitinstance> {
 			__impl_store_fns!($traitinstance $($t)*);
 		}
+		__decl_genesis_config_items!([$traittype $traitinstance] [] $($t)*);
 	}
 }
 
