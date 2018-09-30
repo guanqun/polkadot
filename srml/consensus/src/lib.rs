@@ -120,6 +120,22 @@ decl_storage! {
 		// the set has been changed.
 		OriginalAuthorities: Option<Vec<T::SessionKey>>;
 	}
+	add_extra_genesis {
+		config(authorities): Vec<T::SessionKey>;
+		#[serde(with = "substrate_primitives::bytes")]
+		config(code): Vec<u8>;
+
+		build(|storage, config| {
+			use codec::{Encode, KeyedVec};
+
+			let auth_count = genesis_config.authorities.len() as u32;
+			for (i, v) in genesis_config..authorities.into_iter().enumerate() {
+				storage.insert((i as u32).to_keyed_vec(well_known_keys::AUTHORITY_PREFIX), v.encode());
+			};
+			storage.insert(well_known_keys::AUTHORITY_COUNT.to_vec(), auth_count.encode());
+			storage.insert(well_known_keys::CODE.to_vec(), config.code);
+		});
+	}
 }
 
 decl_module! {
@@ -232,37 +248,3 @@ impl<T: Trait> OnFinalise<T::BlockNumber> for Module<T> {
 	}
 }
 
-#[cfg(any(feature = "std", test))]
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-#[serde(deny_unknown_fields)]
-pub struct GenesisConfig<T: Trait> {
-	pub authorities: Vec<T::SessionKey>,
-	#[serde(with = "substrate_primitives::bytes")]
-	pub code: Vec<u8>,
-}
-
-#[cfg(any(feature = "std", test))]
-impl<T: Trait> Default for GenesisConfig<T> {
-	fn default() -> Self {
-		GenesisConfig {
-			authorities: vec![],
-			code: vec![],
-		}
-	}
-}
-
-#[cfg(any(feature = "std", test))]
-impl<T: Trait> primitives::BuildStorage for GenesisConfig<T>
-{
-	fn build_storage(self) -> ::std::result::Result<primitives::StorageMap, String> {
-		use codec::{Encode, KeyedVec};
-		let auth_count = self.authorities.len() as u32;
-		let mut r: primitives::StorageMap = self.authorities.into_iter().enumerate().map(|(i, v)|
-			((i as u32).to_keyed_vec(well_known_keys::AUTHORITY_PREFIX), v.encode())
-		).collect();
-		r.insert(well_known_keys::AUTHORITY_COUNT.to_vec(), auth_count.encode());
-		r.insert(well_known_keys::CODE.to_vec(), self.code);
-		Ok(r.into())
-	}
-}
