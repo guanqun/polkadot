@@ -182,16 +182,35 @@ decl_storage! {
 		pub AccountNonce get(account_nonce): map T::AccountId => T::Index;
 
 		ExtrinsicCount: Option<u32>;
-		pub BlockHash get(block_hash): map T::BlockNumber => T::Hash;
+		pub BlockHash get(block_hash) build(|_| vec![(T::BlockNumber::zero(), [69u8; 32])]): map T::BlockNumber => T::Hash;
+
 		ExtrinsicData get(extrinsic_data): map u32 => Vec<u8>;
-		RandomSeed no_config get(random_seed): T::Hash;
+		RandomSeed get(random_seed) build(|_| [0u8; 32]): T::Hash;
 		/// The current block number being processed. Set by `execute_block`.
-		Number no_config get(block_number): T::BlockNumber;
-		ParentHash no_config get(parent_hash): T::Hash;
+		Number get(block_number) build(|_| 1u64|): T::BlockNumber;
+		ParentHash get(parent_hash) build(|_| [69u8; 32]): T::Hash;
 		ExtrinsicsRoot no_config get(extrinsics_root): T::Hash;
 		Digest no_config get(digest): T::Digest;
 
 		Events no_config get(events): Vec<EventRecord<T::Event>>;
+	}
+	add_extra_genesis {
+		/// Changes trie configuration.
+		config(changes_trie_config): Option<ChangesTrieConfiguration>;
+		/// Marker for 'storing' T.
+		config(_phantom): ::std::marker::PhantomData<T>;
+
+		build(|storage, config| {
+			use codec::Encode;
+
+			storage.insert(well_known_keys::EXTRINSIC_INDEX.to_vec(), 0u32.encode());
+
+			if let Some(changes_trie_config) = config.changes_trie_config {
+				storage.insert(
+					well_known_keys::CHANGES_TRIE_CONFIG.to_vec(),
+					changes_trie_config.encode());
+			}
+		});
 	}
 }
 
@@ -393,52 +412,6 @@ impl<T: Trait> BlockNumberToHash for Module<T> {
 	type Hash = T::Hash;
 	fn block_number_to_hash(&self, n: Self::BlockNumber) -> Option<Self::Hash> {
 		Some(<Module<T>>::block_hash(n))
-	}
-}
-
-#[cfg(any(feature = "std", test))]
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-#[serde(deny_unknown_fields)]
-pub struct GenesisConfig<T: Trait> {
-	/// Changes trie configuration.
-	pub changes_trie_config: Option<ChangesTrieConfiguration>,
-	/// Marker for 'storing' T.
-	pub _phantom: ::std::marker::PhantomData<T>,
-}
-
-#[cfg(any(feature = "std", test))]
-impl<T: Trait> Default for GenesisConfig<T> {
-	fn default() -> Self {
-		GenesisConfig {
-			changes_trie_config: Default::default(),
-			_phantom: Default::default(),
-		}
-	}
-}
-
-#[cfg(any(feature = "std", test))]
-impl<T: Trait> primitives::BuildStorage for GenesisConfig<T>
-{
-	fn build_storage(self) -> Result<primitives::StorageMap, String> {
-		use codec::Encode;
-
-		let mut storage: primitives::StorageMap = map![
-			Self::hash(&<BlockHash<T>>::key_for(T::BlockNumber::zero())).to_vec() => [69u8; 32].encode(),
-			Self::hash(<Number<T>>::key()).to_vec() => 1u64.encode(),
-			Self::hash(<ParentHash<T>>::key()).to_vec() => [69u8; 32].encode(),
-			Self::hash(<RandomSeed<T>>::key()).to_vec() => [0u8; 32].encode()
-		];
-
-		storage.insert(well_known_keys::EXTRINSIC_INDEX.to_vec(), 0u32.encode());
-
-		if let Some(changes_trie_config) = self.changes_trie_config {
-			storage.insert(
-				well_known_keys::CHANGES_TRIE_CONFIG.to_vec(),
-				changes_trie_config.encode());
-		}
-
-		Ok(storage)
 	}
 }
 
