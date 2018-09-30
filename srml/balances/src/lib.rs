@@ -153,18 +153,23 @@ decl_event!(
 decl_storage! {
 	trait Store for Module<T: Trait> as Balances {
 		/// The total amount of stake on the system.
-		pub TotalIssuance no_config get(total_issuance): T::Balance;
+		pub TotalIssuance get(total_issuance) build(|config| {
+			config.balances.iter().fold(Zero::zero(), |acc, &(_, n)| acc + n);
+		}): T::Balance;
 		/// The minimum amount allowed to keep an account open.
-		pub ExistentialDeposit get(existential_deposit): T::Balance;
+		pub ExistentialDeposit get(existential_deposit) config(): T::Balance;
 		/// The amount credited to a destination's account whose index was reclaimed.
-		pub ReclaimRebate get(reclaim_rebate): T::Balance;
+		pub ReclaimRebate get(reclaim_rebate) config(): T::Balance;
 		/// The fee required to make a transfer.
-		pub TransferFee get(transfer_fee): T::Balance;
+		pub TransferFee get(transfer_fee) config(): T::Balance;
 		/// The fee required to create an account. At least as big as ReclaimRebate.
-		pub CreationFee get(creation_fee): T::Balance;
+		pub CreationFee get(creation_fee) config(): T::Balance;
 
 		/// The next free enumeration set.
-		pub NextEnumSet no_config get(next_enum_set): T::AccountIndex;
+		pub NextEnumSet get(next_enum_set) build(|config| {
+			let total_issuance: T::Balance = config.balances.iter().fold(Zero::zero(), |acc, &(_, n)| acc + n);
+			T::AccountIndex::sa(config.balances.len() / ENUM_SET_SIZE)
+		}): T::AccountIndex;
 		/// The enumeration sets.
 		pub EnumSet get(enum_set): map T::AccountIndex => Vec<T::AccountId>;
 
@@ -199,9 +204,30 @@ decl_storage! {
 		// Payment stuff.
 
 		/// The fee to be paid for making a transaction; the base.
-		pub TransactionBaseFee get(transaction_base_fee): T::Balance;
+		pub TransactionBaseFee get(transaction_base_fee) config(): T::Balance;
 		/// The fee to be paid for making a transaction; the per-byte portion.
-		pub TransactionByteFee get(transaction_byte_fee): T::Balance;
+		pub TransactionByteFee get(transaction_byte_fee) config(): T::Balance;
+	}
+	add_extra_genesis {
+		config(balances): Vec<(T::AccountId, T::Balance)>;
+
+		build(|storage, config| {
+			use codec::Encode;
+
+			//let total_issuance: T::Balance = config.balances.iter().fold(Zero::zero(), |acc, &(_, n)| acc + n);
+
+			//storage.insert(GenesisConfig<T>::hash(<NextEnumSet<T>>::key()).to_vec(), T::AccountIndex::sa(config.balances.len() / ENUM_SET_SIZE).encode());
+			//storage.insert(GenesisConfig<T>::hash(<TotalIssuance<T>>::key()).to_vec(), total_issuance.encode());
+
+			let ids: Vec<_> = config.balances.iter().map(|x| x.0.clone()).collect();
+			for i in 0..(ids.len() + ENUM_SET_SIZE - 1) / ENUM_SET_SIZE {
+				storage.insert(GenesisConfig<T>::hash(&<EnumSet<T>>::key_for(T::AccountIndex::sa(i))).to_vec(),
+					ids[i * ENUM_SET_SIZE..ids.len().min((i + 1) * ENUM_SET_SIZE)].to_owned().encode());
+			}
+			//for (who, value) in config.balances.into_iter() {
+			//	storage.insert(GenesisConfig<T>::hash(&<FreeBalance<T>>::key_for(who)).to_vec(), value.encode());
+			//}
+		});
 	}
 }
 
