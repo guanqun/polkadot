@@ -133,29 +133,29 @@ decl_event!(
 pub type PairOf<T> = (T, T);
 
 decl_storage! {
-	trait Store for Module<T: Trait>, GenesisConfig<T> as Staking {
+	trait Store for Module<T: Trait> as Staking {
 
 		/// The ideal number of staking participants.
-		pub ValidatorCount get(validator_count): u32;
+		pub ValidatorCount get(validator_count) config(): u32;
 		/// Minimum number of staking participants before emergency conditions are imposed.
-		pub MinimumValidatorCount get(minimum_validator_count): u32 = DEFAULT_MINIMUM_VALIDATOR_COUNT;
+		pub MinimumValidatorCount get(minimum_validator_count) config(): u32 = DEFAULT_MINIMUM_VALIDATOR_COUNT;
 		/// The length of a staking era in sessions.
-		pub SessionsPerEra get(sessions_per_era): T::BlockNumber = T::BlockNumber::sa(1000);
+		pub SessionsPerEra get(sessions_per_era) config(): T::BlockNumber = T::BlockNumber::sa(1000);
 		/// Maximum reward, per validator, that is provided per acceptable session.
-		pub SessionReward get(session_reward): Perbill = Perbill::from_billionths(60);
+		pub SessionReward get(session_reward) config(): Perbill = Perbill::from_billionths(60);
 		/// Slash, per validator that is taken for the first time they are found to be offline.
-		pub OfflineSlash get(offline_slash): Perbill = Perbill::from_millionths(1000); // Perbill::from_fraction() is only for std, so use from_millionths().
+		pub OfflineSlash get(offline_slash) config(): Perbill = Perbill::from_millionths(1000); // Perbill::from_fraction() is only for std, so use from_millionths().
 		/// Number of instances of offline reports before slashing begins for validators.
-		pub OfflineSlashGrace get(offline_slash_grace): u32;
+		pub OfflineSlashGrace get(offline_slash_grace) config(): u32;
 		/// The length of the bonding duration in blocks.
-		pub BondingDuration get(bonding_duration): T::BlockNumber = T::BlockNumber::sa(1000);
+		pub BondingDuration get(bonding_duration) config(): T::BlockNumber = T::BlockNumber::sa(1000);
 
 		/// The current era index.
-		pub CurrentEra get(current_era): T::BlockNumber;
+		pub CurrentEra get(current_era) config(): T::BlockNumber;
 		/// Preferences that a validator has.
 		pub ValidatorPreferences get(validator_preferences): map T::AccountId => ValidatorPrefs<T::Balance>;
 		/// All the accounts with a desire to stake.
-		pub Intentions get(intentions): Vec<T::AccountId>;
+		pub Intentions get(intentions) config(): Vec<T::AccountId>;
 		/// All nominator -> nominee relationships.
 		pub Nominating get(nominating): map T::AccountId => Option<T::AccountId>;
 		/// Nominators for a particular account.
@@ -164,17 +164,17 @@ decl_storage! {
 		pub CurrentNominatorsFor get(current_nominators_for): map T::AccountId => Vec<T::AccountId>;
 
 		/// Maximum reward, per validator, that is provided per acceptable session.
-		pub CurrentSessionReward get(current_session_reward): T::Balance;
+		pub CurrentSessionReward get(current_session_reward) config(): T::Balance;
 		/// Slash, per validator that is taken for the first time they are found to be offline.
-		pub CurrentOfflineSlash get(current_offline_slash): T::Balance;
+		pub CurrentOfflineSlash get(current_offline_slash) config(): T::Balance;
 
 		/// The next value of sessions per era.
-		pub NextSessionsPerEra no_config get(next_sessions_per_era): Option<T::BlockNumber>;
+		pub NextSessionsPerEra get(next_sessions_per_era): Option<T::BlockNumber>;
 		/// The session index at which the era length last changed.
-		pub LastEraLengthChange no_config get(last_era_length_change): T::BlockNumber;
+		pub LastEraLengthChange get(last_era_length_change): T::BlockNumber;
 
 		/// The highest and lowest staked validator slashable balances.
-		pub StakeRange no_config get(stake_range): PairOf<T::Balance>;
+		pub StakeRange get(stake_range): PairOf<T::Balance>;
 
 		/// The block at which the `who`'s funds become entirely liquid.
 		pub Bondage get(bondage): map T::AccountId => T::BlockNumber;
@@ -182,27 +182,7 @@ decl_storage! {
 		pub SlashCount get(slash_count): map T::AccountId => u32;
 
 		/// We are forcing a new era.
-		pub ForcingNewEra no_config get(forcing_new_era): Option<()>;
-	}
-}
-
-#[cfg(feature = "std")]
-impl<T: Trait> primitives::BuildStorage for GenesisConfig<T> {
-	fn build_storage(self) -> ::std::result::Result<primitives::StorageMap, String> {
-		use codec::Encode;
-		Ok(map![
-			Self::hash(<Intentions<T>>::key()).to_vec() => self.intentions.encode(),
-			Self::hash(<SessionsPerEra<T>>::key()).to_vec() => self.sessions_per_era.encode(),
-			Self::hash(<ValidatorCount<T>>::key()).to_vec() => self.validator_count.encode(),
-			Self::hash(<MinimumValidatorCount<T>>::key()).to_vec() => self.minimum_validator_count.encode(),
-			Self::hash(<BondingDuration<T>>::key()).to_vec() => self.bonding_duration.encode(),
-			Self::hash(<CurrentEra<T>>::key()).to_vec() => self.current_era.encode(),
-			Self::hash(<SessionReward<T>>::key()).to_vec() => self.session_reward.encode(),
-			Self::hash(<OfflineSlash<T>>::key()).to_vec() => self.offline_slash.encode(),
-			Self::hash(<CurrentSessionReward<T>>::key()).to_vec() => self.current_session_reward.encode(),
-			Self::hash(<CurrentOfflineSlash<T>>::key()).to_vec() => self.current_offline_slash.encode(),
-			Self::hash(<OfflineSlashGrace<T>>::key()).to_vec() => self.offline_slash_grace.encode()
-		])
+		pub ForcingNewEra get(forcing_new_era): Option<()>;
 	}
 }
 
