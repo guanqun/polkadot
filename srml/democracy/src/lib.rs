@@ -323,23 +323,6 @@ impl<T: Trait> OnFinalise<T::BlockNumber> for Module<T> {
 //	}
 //}
 
-#[cfg(any(feature = "std", test))]
-impl<T: Trait> primitives::BuildStorage for GenesisConfig<T>
-{
-	fn build_storage(self) -> ::std::result::Result<primitives::StorageMap, String> {
-		use codec::Encode;
-
-		Ok(map![
-			Self::hash(<LaunchPeriod<T>>::key()).to_vec() => self.launch_period.encode(),
-			Self::hash(<VotingPeriod<T>>::key()).to_vec() => self.voting_period.encode(),
-			Self::hash(<MinimumDeposit<T>>::key()).to_vec() => self.minimum_deposit.encode(),
-			Self::hash(<ReferendumCount<T>>::key()).to_vec() => (0 as ReferendumIndex).encode(),
-			Self::hash(<NextTally<T>>::key()).to_vec() => (0 as ReferendumIndex).encode(),
-			Self::hash(<PublicPropCount<T>>::key()).to_vec() => (0 as PropIndex).encode()
-		])
-	}
-}
-
 #[cfg(test)]
 mod tests {
 	use super::*;
