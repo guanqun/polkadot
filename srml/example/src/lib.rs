@@ -132,7 +132,7 @@ decl_storage! {
 	// A macro for the Storage trait, and its implementation, for this module.
 	// This allows for type-safe usage of the Substrate storage database, so you can
 	// keep things around between blocks.
-	trait Store for Module<T: Trait>, GenesisConfig<T> as Example {
+	trait Store for Module<T: Trait> as Example {
 		// Any storage declarations of the form:
 		//   `pub? Name no_config? get(getter_name)? : <type> (= <new_default_value>)?;`
 		// where `<type>` is either:
@@ -159,10 +159,10 @@ decl_storage! {
 		//
 		// For the getter methods, unless you specify `no_config` in the declaration,
 		// this macro will automatically declare a GenesisConfig<T> for you.
-		Dummy get(dummy): Option<T::Balance>;
+		Dummy get(dummy) config(): Option<T::Balance>;
 
 		// this one uses the default, we'll demonstrate the usage of 'mutate' API.
-		Foo get(foo): T::Balance;
+		Foo get(foo) config(): T::Balance;
 	}
 }
 
@@ -277,25 +277,6 @@ impl<T: Trait> OnFinalise<T::BlockNumber> for Module<T> {
 		// Anything that needs to be done at the end of the block.
 		// We just kill our dummy storage item.
 		<Dummy<T>>::kill();
-	}
-}
-
-// This expresses the specific key/value pairs that must be placed in storage in order
-// to initialise the module and properly reflect the configuration.
-//
-// Ideally this would re-use the `::put` logic in the storage item type for introducing
-// the values into the `StorageMap` (which is just a `HashMap<Vec<u8>, Vec<u8>>`). That
-// is not yet in place, though, so for now we do everything "manually", using `hash`,
-// `::key()` and `.to_vec()` for the key and `.encode()` for the value.
-#[cfg(feature = "std")]
-impl<T: Trait> runtime_primitives::BuildStorage for GenesisConfig<T>
-{
-	fn build_storage(self) -> ::std::result::Result<runtime_primitives::StorageMap, String> {
-		use codec::Encode;
-		Ok(map![
-			Self::hash(<Dummy<T>>::key()).to_vec() => self.dummy.encode(),
-			Self::hash(<Foo<T>>::key()).to_vec() => self.foo.encode()
-		])
 	}
 }
 
