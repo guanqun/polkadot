@@ -184,7 +184,7 @@ decl_storage! {
 		///
 		/// `system::AccountNonce` is also deleted if `ReservedBalance` is also zero (it also gets
 		/// collapsed to zero if it ever becomes less than `ExistentialDeposit`.
-		pub FreeBalance get(free_balance): map T::AccountId => T::Balance;
+		pub FreeBalance get(free_balance) build(|config| config.balances): map T::AccountId => T::Balance;
 
 		/// The amount of the balance of a given account that is externally reserved; this can still get
 		/// slashed, but gets slashed last of all.
