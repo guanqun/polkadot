@@ -67,21 +67,12 @@ impl<Hash> WaitingTransaction<Hash> {
 ///
 /// Contains transactions that are still awaiting for some other transactions that
 /// could provide a tag that they require.
-#[derive(Debug)]
+#[derive(Default, Debug)]
 pub struct FutureTransactions<Hash: hash::Hash + Eq> {
 	/// tags that are not yet provided by any transaction and we await for them
 	wanted_tags: HashMap<Tag, HashSet<Hash>>,
 	/// Transactions waiting for a particular other transaction
 	waiting: HashMap<Hash, WaitingTransaction<Hash>>,
-}
-
-impl<Hash: hash::Hash + Eq> Default for FutureTransactions<Hash> {
-	fn default() -> Self {
-		FutureTransactions {
-			wanted_tags: Default::default(),
-			waiting: Default::default(),
-		}
-	}
 }
 
 const WAITING_PROOF: &str = r"#

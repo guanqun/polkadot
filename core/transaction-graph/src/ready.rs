@@ -78,7 +78,7 @@ Hence every hash retrieved from `provided_tags` is always present in `ready`;
 qed
 "#;
 
-#[derive(Debug)]
+#[derive(Default, Debug)]
 pub struct ReadyTransactions<Hash: hash::Hash + Eq> {
 	/// Insertion id
 	insertion_id: u64,
@@ -89,17 +89,6 @@ pub struct ReadyTransactions<Hash: hash::Hash + Eq> {
 	// ^^ TODO [ToDr] Consider wrapping this into `Arc<RwLock<>>` and allow multiple concurrent iterators
 	/// Best transactions that are ready to be included to the block without any other previous transaction.
 	best: BTreeSet<TransactionRef<Hash>>,
-}
-
-impl<Hash: hash::Hash + Eq> Default for ReadyTransactions<Hash> {
-	fn default() -> Self {
-		ReadyTransactions {
-			insertion_id: Default::default(),
-			provided_tags: Default::default(),
-			ready: Default::default(),
-			best: Default::default(),
-		}
-	}
 }
 
 impl<Hash: hash::Hash + Member> ReadyTransactions<Hash> {
